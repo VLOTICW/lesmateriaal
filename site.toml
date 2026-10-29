@@ -1,0 +1,14 @@
+# Instellingen van de site. Pas namen en volgorde hier aan.
+# De sleutels onder [vakken] en [klassen] moeten overeenkomen met de mapnamen in inhoud/.
+
+titel = "ICW — lesmateriaal"
+ondertitel = "VLOT! Campus Sint-Laurentius Lokeren"
+
+[vakken]
+computationeel-denken = "Computationeel denken"
+fysica-elektronica = "Fysica — elektronica"
+softwareontwikkeling = "Softwareontwikkeling"
+
+[klassen]
+5icw = "5ICW"
+6icw = "6ICW"
