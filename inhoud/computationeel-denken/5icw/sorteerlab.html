@@ -1,0 +1,1231 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Sorteerlab 5ICW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: werkbank in twee kolommen — links de rij en de tellers, rechts de flowchart of pseudocode die meeloopt. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f5f7fa; --ink:#141b27; --ink-2:#465166; --muted:#737d90; --line:#d5dbe4;
+  --accent:#1f47c4; --accent-soft:#e2e8fb;
+  --cmp:#c97800; --cmp-soft:#fdebc8; --swap:#cf3d36; --swap-soft:#f9dcda;
+  --done:#178a5c; --done-soft:#d2efe1; --key:#7445b8; --key-soft:#ece3f8; --bar:#a3afc3; --part:#bfe3d2;
+  --fc-term:#ccccff; --fc-term-s:#3a3ad6; --fc-proc:#ccffcc; --fc-dec:#ffe6cc; --fc-io:#f2ccd9; --fc-s:#1d2430; --fc-text:#141b27;
+  --edge:#b8c0cd; --edge-used:#6b82c6;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --card:#ffffff; --card-ink:#1a1d24; --card-red:#c62828; --card-edge:#c9cfd9;
+  --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f131a; --surface:#171c25; --surface-2:#1d2330; --ink:#e8ecf3; --ink-2:#b4bccb; --muted:#8a94a6; --line:#2c3443;
+    --accent:#86a2ff; --accent-soft:#1f2a4a;
+    --cmp:#f0a531; --cmp-soft:#4a3613; --swap:#f06a62; --swap-soft:#4d2321;
+    --done:#3cc48b; --done-soft:#173a2c; --key:#b28cf0; --key-soft:#33264a; --bar:#5a6780; --part:#24503d;
+    --fc-term:#2b2e66; --fc-term-s:#8e8ef5; --fc-proc:#1c4a2a; --fc-dec:#55391a; --fc-io:#4f2838; --fc-s:#a9b3c4; --fc-text:#eef1f6;
+    --edge:#3a4354; --edge-used:#7088d0;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --card:#f1f3f7; --card-ink:#1a1d24; --card-red:#c62828; --card-edge:#8f99aa;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#0f131a; --surface:#171c25; --surface-2:#1d2330; --ink:#e8ecf3; --ink-2:#b4bccb; --muted:#8a94a6; --line:#2c3443;
+    --accent:#86a2ff; --accent-soft:#1f2a4a;
+    --cmp:#f0a531; --cmp-soft:#4a3613; --swap:#f06a62; --swap-soft:#4d2321;
+    --done:#3cc48b; --done-soft:#173a2c; --key:#b28cf0; --key-soft:#33264a; --bar:#5a6780; --part:#24503d;
+    --fc-term:#2b2e66; --fc-term-s:#8e8ef5; --fc-proc:#1c4a2a; --fc-dec:#55391a; --fc-io:#4f2838; --fc-s:#a9b3c4; --fc-text:#eef1f6;
+    --edge:#3a4354; --edge-used:#7088d0;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --card:#f1f3f7; --card-ink:#1a1d24; --card-red:#c62828; --card-edge:#8f99aa;
+    color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:12px 40px}
+.wrap{max-width:1420px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* kop */
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+h1 span{color:var(--accent)}
+.lgs{display:flex;flex-wrap:wrap;gap:2px 10px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tab{appearance:none;border:0;background:none;padding:6px 14px 6px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start;gap:0;color:var(--ink-2)}
+.tab small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.tab b{font-family:var(--f-display);font-weight:700;font-size:16px}
+.tab[aria-selected="true"]{border-bottom-color:var(--accent);color:var(--ink)}
+.tab[aria-selected="true"] b{color:var(--accent)}
+.tab:hover b{color:var(--ink)}
+
+/* invoerbalk */
+.inputbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.inputbar label{font-weight:600}
+.inputbar .lfield{display:flex;align-items:center;gap:8px;flex:1 1 260px;min-width:0}
+.inputbar input[type=text]{font-family:var(--f-mono);flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2)}
+.inputbar .presets{display:flex;flex-wrap:wrap;gap:6px}
+.chipbtn{border:1px solid var(--line);background:var(--surface-2);padding:5px 10px;border-radius:999px;font-size:13px;cursor:pointer}
+.chipbtn:hover{border-color:var(--accent)}
+.chipbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.nfield{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.nfield input{width:120px;accent-color:var(--accent)}
+.err{color:var(--swap);font-size:13px;flex-basis:100%}
+
+/* paneel */
+.intro{margin:0;max-width:78ch;color:var(--ink-2);font-size:13.5px}
+.bigo{font-family:var(--f-mono);font-weight:600;font-size:12.5px;padding:1px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--line);white-space:nowrap}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:10px}
+@media (min-width:1040px){.grid{grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)}.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);align-self:start}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-width:0}
+.card h3{font-size:14px;font-weight:700;letter-spacing:.02em;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.card h3 small{font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:12px;letter-spacing:0}
+
+/* staafjes */
+.stagewrap{display:flex;gap:14px;align-items:stretch}
+.bars{flex:1;min-width:0;display:flex;justify-content:center;gap:6px}
+.colm{display:flex;flex-direction:column;align-items:stretch;flex:0 1 26px;min-width:14px}
+.barbox{height:160px;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch}
+.val{text-align:center;font-family:var(--f-mono);font-weight:600;font-size:14px;font-variant-numeric:tabular-nums;line-height:1.6}
+.bar{background:var(--bar);border-radius:4px 4px 0 0;min-height:4px;transition:height .25s ease, background-color .2s}
+.idx{text-align:center;font-family:var(--f-mono);font-size:12px;color:var(--muted);border-top:2px solid var(--line);padding-top:2px}
+.ptrs{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;padding-top:4px}
+.barsw{flex:1;min-width:0;display:flex;flex-direction:column}
+.barsw .bars{flex:none}
+.lanes{position:relative}
+.lanes .lp{position:absolute;transform:translateX(-50%);transition:left .3s ease, opacity .2s}
+.lanes.noanim .lp{transition:none}
+.ptr{font-family:var(--f-mono);font-size:11px;font-weight:600;padding:0 5px;border-radius:4px;line-height:17px;white-space:nowrap;background:var(--accent-soft);color:var(--accent)}
+.ptr.p-min{background:var(--key-soft);color:var(--key)}
+.ptr.p-j{background:var(--cmp-soft);color:var(--cmp)}
+.colm.fin .bar{background:var(--done)}
+.colm.part .bar{background:var(--part)}
+.colm.cmp .bar{background:var(--cmp)}
+.colm.swap .bar{background:var(--swap)}
+.colm.write .bar{background:var(--accent)}
+.colm.gap .bar,.colm.gap .val{visibility:hidden}
+.colm.gap .barbox{outline:2px dashed var(--key);outline-offset:-2px;border-radius:4px;background:var(--key-soft)}
+.colm.isMin .val{color:var(--key)}
+.keybox{flex:0 0 74px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;border-left:1px dashed var(--line);padding-left:12px}
+.keybox .kv{width:48px;height:48px;border-radius:8px;display:grid;place-items:center;font-family:var(--f-mono);font-size:20px;font-weight:600;background:var(--key-soft);color:var(--key);border:2px solid var(--key)}
+.keybox .kv.empty{background:transparent;color:var(--muted);border-style:dashed;border-color:var(--line)}
+.keybox span{font-size:12px;color:var(--muted)}
+
+/* vertelling + speler */
+.narr{font-size:16px;min-height:3.2em;padding:10px 14px;border-radius:var(--r);background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.narr sub{font-size:.7em}
+.player{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;background:var(--bg);padding-block:8px;margin-top:4px;border-bottom:1px solid var(--line)}
+.pbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:8px;height:36px;width:40px;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.pbtn:hover{border-color:var(--accent)}
+.pbtn.play{background:var(--accent);border-color:var(--accent);color:var(--surface);width:52px}
+.pbtn svg{width:15px;height:15px;fill:currentColor}
+.progress{flex:1 1 auto;min-width:30px;height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-inline:6px}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.stepno{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:5.5em;text-align:right}
+.speed{flex:0 1 100px;min-width:50px;accent-color:var(--accent)}
+
+/* tellers */
+.stats{display:flex;flex-wrap:wrap;align-items:center;gap:10px 28px}
+.vars{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.var{font-family:var(--f-mono);font-size:13px;padding:3px 8px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.var.chg{border-color:var(--accent);color:var(--accent)}
+.counter{display:flex;flex-direction:column}
+.counter b{font-family:var(--f-display);font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.counter span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.counter.c1 b{color:var(--cmp)}
+.counter.c2 b{color:var(--swap)}
+.meter{margin-top:6px;position:relative;padding:22px 0 22px}
+.meter .track{height:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;position:relative;overflow:hidden}
+.meter .fill{position:absolute;inset:0 auto 0 0;background:var(--cmp);border-radius:7px 0 0 7px;transition:width .2s}
+.meter .tick{position:absolute;top:18px;bottom:18px;width:2px;background:var(--ink-2);transform:translateX(-1px)}
+.meter .tl{position:absolute;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);white-space:nowrap;transform:translateX(-50%)}
+.meter .tl.up{top:0}.meter .tl.dn{bottom:0}
+.meter .tl.edge-l{transform:none}.meter .tl.edge-r{transform:translateX(-100%)}
+
+/* log */
+table.log{border-collapse:collapse;font-family:var(--f-mono);font-size:13px;width:100%}
+table.log th,table.log td{border:1px solid var(--line);padding:3px 10px;text-align:center}
+table.log th{background:var(--surface-2);font-family:var(--f-body);font-weight:600}
+table.log b{color:var(--done)}
+table.log tr.new td{background:var(--accent-soft)}
+.logwrap{overflow-x:auto}
+.empty{color:var(--muted);font-size:13px}
+
+/* flowchart */
+.fcwrap{overflow:hidden}
+.fcwrap svg{width:100%;height:auto;display:block}
+@media (min-width:1040px){.fcwrap svg{height:calc(100vh - 255px);min-height:420px}}
+.fn polygon,.fn rect{stroke:var(--fc-s);stroke-width:1.3;transition:stroke-width .15s}
+.fn.term rect{fill:var(--fc-term);stroke:var(--fc-term-s)}
+.fn.proc rect{fill:var(--fc-proc)}
+.fn.dec polygon{fill:var(--fc-dec)}
+.fn.io polygon{fill:var(--fc-io)}
+.fn text{fill:var(--fc-text);font-family:var(--f-body);font-size:13.5px;text-anchor:middle}
+.fn.on polygon,.fn.on rect{stroke:var(--accent);stroke-width:4}
+.fn .halo{fill:none;stroke:var(--accent);stroke-width:10;opacity:0}
+.fn.on .halo{opacity:.18}
+.fe{fill:none;stroke:var(--edge);stroke-width:1.6;stroke-linejoin:round}
+.fe.used{stroke:var(--edge-used)}
+.fe.act{stroke:var(--accent);stroke-dasharray:7 5;animation:flow .6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-12}}
+.fl{font-family:var(--f-body);font-size:12px;fill:var(--ink-2);font-style:italic}
+.badge rect{fill:var(--surface);stroke:var(--edge-used);stroke-width:1}
+.badge text{font-family:var(--f-mono);font-size:11px;fill:var(--ink);text-anchor:middle;font-weight:600}
+.badge.act rect{stroke:var(--accent);fill:var(--accent-soft)}
+
+/* recursieboom */
+.tree{position:relative;width:100%}
+.tnode{position:absolute;display:flex;gap:2px;padding:2px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface-2);transition:border-color .2s}
+.tnode .c{flex:1;min-width:0;text-align:center;font-family:var(--f-mono);font-size:13px;font-weight:600;line-height:24px;border-radius:3px;background:var(--surface);font-variant-numeric:tabular-nums}
+.tnode.wait{border:1.5px dashed var(--accent)}
+.tnode.active{border:2.5px solid var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.tnode.done .c{background:var(--done-soft);color:var(--done)}
+.tnode .c.pv{background:var(--key-soft);color:var(--key)}
+.tnode.pivot{border-color:var(--key);background:var(--key-soft)}
+.tnode.pivot .c{background:var(--key);color:var(--surface)}
+.rowlab{position:absolute;left:0;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.treegrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 8px}
+.depthcol{position:relative;width:24px}
+.mpanel{display:flex;flex-direction:column;gap:8px}
+.lrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lrow .lab{font-family:var(--f-mono);font-size:13px;width:118px;color:var(--ink-2)}
+.cells{display:flex;gap:3px;flex-wrap:wrap;min-height:28px;align-items:center}
+.cells .c{width:30px;height:28px;display:grid;place-items:center;font-family:var(--f-mono);font-weight:600;font-size:13px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line)}
+.cells .c.first{border:2px solid var(--cmp);background:var(--cmp-soft)}
+.cells .c.take{border:2px solid var(--accent);background:var(--accent-soft)}
+.cells .c.pv{background:var(--key);color:var(--surface);border-color:var(--key)}
+.cells .leeg{font-size:12px;color:var(--muted);font-style:italic}
+
+/* pseudocode */
+.code{font-family:var(--f-mono);font-size:13px;line-height:1.55;overflow-x:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 0}
+.ln{display:flex;white-space:pre;padding:0 12px 0 0;border-left:3px solid transparent}
+.ln .no{width:34px;flex:0 0 34px;text-align:right;color:var(--muted);padding-right:10px;user-select:none}
+.ln.on{background:var(--accent-soft);border-left-color:var(--accent);color:var(--ink);font-weight:600}
+.kw{color:var(--accent)}
+.cm{color:var(--muted);font-style:italic}
+.stack{display:flex;flex-direction:column;gap:4px;font-family:var(--f-mono);font-size:12.5px}
+.frame{padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);overflow-wrap:anywhere}
+.frame.top{border:2px solid var(--accent);background:var(--accent-soft);font-weight:600}
+.frame.m{border-left:4px solid var(--cmp)}
+.sideopts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;margin-bottom:8px}
+.sideopts select{padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface-2)}
+
+.hand{display:flex;flex-direction:column;align-items:center;gap:6px}
+.handgrid{display:grid;gap:4px 6px;justify-content:center;width:100%}
+.lift{height:96px;display:flex;align-items:flex-end;justify-content:center}
+.pcard,.pslot{height:88px;border-radius:7px;position:relative;margin-bottom:4px}
+.pcard{background:var(--card);color:var(--card-ink);border:2px solid var(--card-edge);box-shadow:0 1px 2px rgba(0,0,0,.18);font-family:var(--f-display);transition:border-color .2s}
+.pcard.red{color:var(--card-red)}
+.pcard .cr{position:absolute;left:6px;top:4px;font-size:14px;font-weight:700;line-height:1.05;text-align:center}
+.pcard .cs{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;padding-top:10px}
+.pcard.key{border-color:var(--key);box-shadow:0 0 0 3px var(--key-soft);transform:rotate(-4deg);width:100%}
+.lift .pcard{width:100%;margin:0}
+.pcard.cmp{border-color:var(--cmp);box-shadow:0 0 0 3px var(--cmp-soft)}
+.pcard.write{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.pcard.part{border-color:var(--part)}
+.pcard.fin{border-color:var(--done)}
+.pslot{border:2px dashed var(--key);background:var(--key-soft)}
+.handcap{margin:0;font-size:13px;color:var(--muted);text-align:center;max-width:60ch}
+.card h3 .chipbtn{margin-left:8px;font-family:var(--f-body);font-weight:500;letter-spacing:0}
+.foot{font-size:12.5px;color:var(--muted);max-width:90ch;margin:0}
+.inputbar{margin-top:6px}
+.kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface)}
+
+@media (max-width:560px){
+  .barbox{height:130px}
+  .val{font-size:12px}
+  .keybox{flex-basis:60px;padding-left:8px}
+  .speed{display:none}
+  .pbtn{width:36px}
+  .lrow .lab{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .fe.act{animation:none;stroke-dasharray:none}
+  .bar,.meter .fill,.lanes .lp{transition:none}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Sorteer<span>lab</span></h1>
+    <div class="eyebrow">Computationeel denken · deel 1 · §2.6</div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <main id="panels"></main>
+
+  <div class="inputbar">
+    <div class="lfield">
+      <label for="Lin">L =</label>
+      <input type="text" id="Lin" spellcheck="false" autocomplete="off" aria-describedby="Lerr">
+    </div>
+    <div class="presets" id="presets">
+      <button class="chipbtn" data-gen="cursus">Cursusvoorbeeld</button>
+      <button class="chipbtn" data-gen="random">Willekeurig</button>
+      <button class="chipbtn" data-gen="sorted">Gesorteerd</button>
+      <button class="chipbtn" data-gen="reverse">Omgekeerd</button>
+      <button class="chipbtn" data-gen="almost">Bijna gesorteerd</button>
+    </div>
+    <div class="nfield"><label for="nIn">n =</label><input type="range" id="nIn" min="3" max="16" value="6"><b id="nOut">6</b></div>
+    <div class="err" id="Lerr" hidden></div>
+  </div>
+
+  
+  <p class="foot">Bediening: <span class="kbd">→</span> stap vooruit, <span class="kbd">←</span> stap terug, <span class="kbd">spatie</span> afspelen of pauzeren. Typ een eigen rij (2 tot 16 gehele getallen) en druk op Enter. De indexen starten bij 0, zoals in de flowcharts.</p>
+</div>
+
+<script>
+"use strict";
+/* ---------- hulpfuncties ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const num = v => v < 0 ? "−" + (-v) : String(v);
+const fmt = a => "[" + a.join(", ") + "]";
+const S = s => `<sub>${s}</sub>`;
+const Ls = i => `L${S(typeof i === "number" ? num(i) : i)}`;
+const range = (a, b) => { const r = []; for (let i = a; i < b; i++) r.push(i); return r; };
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function mulberry(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hashArr(a){ let h = 2166136261; for (const v of a){ h ^= v + 31; h = Math.imul(h, 16777619); } return h >>> 0; }
+
+/* Tracer: verzamelt stappen. In lichte modus (groeicurve) worden enkel de tellers bijgehouden. */
+class Tracer{
+  constructor(light){ this.light = light; this.steps = []; this.cmp = 0; this.swp = 0; this.edges = {}; this.log = []; }
+  emit(f){
+    if (this.light) return;
+    const o = f();
+    if (o.edge) this.edges[o.edge] = (this.edges[o.edge] || 0) + 1;
+    o.cmp = this.cmp; o.swp = this.swp; o.edges = Object.assign({}, this.edges); o.logLen = this.log.length;
+    this.steps.push(o);
+  }
+}
+
+/* ---------- bubblesort (flowchart §2.6.1) ---------- */
+function traceBubble(input, light){
+  const t = new Tracer(light), L = input.slice(), n = L.length;
+  let pass = 0, i = null;
+  const fin = () => range(Math.max(0, n - (pass - 1)), n);
+  const base = o => Object.assign({arr: L.slice(), vars: {n, pass: pass || undefined, i: i === null ? undefined : i}, fin: pass ? fin() : [], ptr: {}, hl: {}}, o);
+  t.emit(() => base({node:"start", vars:{}, msg:"Start van het algoritme."}));
+  t.emit(() => base({node:"input", edge:"s-in", vars:{}, msg:`L ← rij: de rij L = ${fmt(L)} wordt ingelezen.`}));
+  pass = 1;
+  t.emit(() => base({node:"init", edge:"in-init", msg:`n = aantal getallen in L = ${n}. We starten met pass = 1.`}));
+  let into = "init-ap";
+  for (;;){
+    const c = pass < n;
+    t.emit(() => base({node:"ap", edge:into, msg:`Is pass &lt; n? ${pass} &lt; ${n} → <b>${c ? "ja" : "neen"}</b>${c ? `: pass ${pass} gaat van start.` : ": alle passes zijn gedaan."}`}));
+    if (!c) break;
+    i = 0;
+    t.emit(() => base({node:"initI", edge:"ap-ja", ptr:{i:0}, msg:`Pass ${pass}: i = 0, we beginnen opnieuw vooraan in de rij.`}));
+    let e = "initI-pg";
+    for (;;){
+      const c2 = i < n - pass;
+      t.emit(() => base({node:"pg", edge:e, ptr: c2 ? {i} : {}, msg:`Is i &lt; n−pass? ${i} &lt; ${n} − ${pass} = ${n - pass} → <b>${c2 ? "ja" : "neen"}</b>${c2 ? "" : ": deze pass is klaar."}`}));
+      if (!c2){
+        const p = pass;
+        t.log.push({label:`na iteratie ${p}`, arr:L.slice(), bold:range(n - p, n)});
+        pass++;
+        t.emit(() => base({node:"up", edge:"pg-neen", fin: range(n - (pass - 1), n), msg:`Na pass ${p} staat ${L[n - p]} definitief op zijn plaats. pass = pass+1 = ${pass}.`}));
+        into = "up-ap"; break;
+      }
+      t.cmp++;
+      const a = L[i], b = L[i + 1], gt = a > b;
+      t.emit(() => base({node:"cmp", edge:"pg-ja", hl:{cmp:[i, i + 1]}, ptr:{i, "i+1":i + 1}, msg:`Vergelijk ${Ls(i)} = ${a} met ${Ls(i + 1)} = ${b}: is ${a} &gt; ${b}? → <b>${gt ? "ja" : "neen"}</b>`}));
+      if (gt){
+        L[i] = b; L[i + 1] = a; t.swp++;
+        t.emit(() => base({node:"swap", edge:"cmp-ja", hl:{swap:[i, i + 1]}, ptr:{i, "i+1":i + 1}, msg:`Verwissel ${Ls(i)} met ${Ls(i + 1)}: ${a} en ${b} wisselen van plaats.`}));
+        i++;
+        t.emit(() => base({node:"ui", edge:"swap-ui", ptr:{i}, msg:`i = i+1 = ${i}.`}));
+      } else {
+        i++;
+        t.emit(() => base({node:"ui", edge:"cmp-neen", ptr:{i}, msg:`Geen verwisseling nodig. i = i+1 = ${i}.`}));
+      }
+      e = "ui-pg";
+    }
+  }
+  i = null;
+  t.emit(() => base({node:"print", edge:"ap-neen", fin:range(0, n), msg:`schrijf L: ${fmt(L)} is gesorteerd.`}));
+  t.emit(() => base({node:"stop", edge:"pr-st", fin:range(0, n), msg:"Einde van het algoritme."}));
+  return t;
+}
+
+/* ---------- selection sort (flowchart §2.6.2) ---------- */
+function traceSelection(input, light){
+  const t = new Tracer(light), L = input.slice(), n = L.length;
+  let i = null, j = null, min = null;
+  const base = o => Object.assign({arr:L.slice(), vars:{n, i: i ?? undefined, j: j ?? undefined, min: min ?? undefined}, fin: i === null ? [] : range(0, i), ptr:{}, hl:{}}, o);
+  const P = () => { const p = {}; if (i !== null && i < n) p.i = i; if (j !== null && j < n) p.j = j; if (min !== null) p.min = min; return p; };
+  t.emit(() => base({node:"start", vars:{}, msg:"Start van het algoritme."}));
+  t.emit(() => base({node:"input", edge:"s-in", vars:{}, msg:`L ← rij: de rij L = ${fmt(L)} wordt ingelezen.`}));
+  i = 0;
+  t.emit(() => base({node:"init", edge:"in-init", ptr:P(), msg:`n = aantal elementen = ${n}. De eerste sleutelpositie is i = 0.`}));
+  let into = "init-ci";
+  for (;;){
+    const c = i < n - 1;
+    t.emit(() => base({node:"ci", edge:into, ptr:P(), msg:`Is i &lt; n−1? ${i} &lt; ${n - 1} → <b>${c ? "ja" : "neen"}</b>${c ? "" : ": alle sleutelposities zijn behandeld."}`}));
+    if (!c) break;
+    min = i; j = i + 1;
+    t.emit(() => base({node:"set", edge:"ci-ja", ptr:P(), msg:`Sleutelpositie i = ${i}. Voorlopig is ${Ls(i)} = ${L[i]} het kleinste: min = ${i}. We zoeken verder vanaf j = ${j}.`}));
+    let e = "set-cj";
+    for (;;){
+      const c2 = j < n;
+      t.emit(() => base({node:"cj", edge:e, ptr:P(), msg:`Is j &lt; n? ${j} &lt; ${n} → <b>${c2 ? "ja" : "neen"}</b>${c2 ? "" : `: het ongesorteerde deel is doorzocht, het kleinste staat op index min = ${min}.`}`}));
+      if (!c2) break;
+      t.cmp++;
+      const lt = L[j] < L[min];
+      t.emit(() => base({node:"cl", edge:"cj-ja", hl:{cmp:[j, min]}, ptr:P(), msg:`Is ${Ls("j")} &lt; ${Ls("min")}? ${Ls(j)} = ${L[j]} &lt; ${Ls(min)} = ${L[min]} → <b>${lt ? "ja" : "neen"}</b>`}));
+      if (lt){
+        min = j;
+        t.emit(() => base({node:"um", edge:"cl-ja", ptr:P(), msg:`Nieuw kleinste element gevonden: min = j = ${min}.`}));
+        j++;
+        t.emit(() => base({node:"ij", edge:"um-ij", ptr:P(), msg:`j = j+1 = ${j}.`}));
+      } else {
+        j++;
+        t.emit(() => base({node:"ij", edge:"cl-neen", ptr:P(), msg:`min blijft ${min}. j = j+1 = ${j}.`}));
+      }
+      e = "ij-cj";
+    }
+    const eq = i === min;
+    const jj = j; j = null;
+    t.emit(() => base({node:"cim", edge:"cj-neen", ptr:P(), msg:`Is i = min? ${i} = ${min} → <b>${eq ? "ja" : "neen"}</b>${eq ? ": het kleinste staat al op de sleutelpositie, verwisselen is niet nodig." : ""}`}));
+    if (!eq){
+      const a = L[i], b = L[min];
+      L[i] = b; L[min] = a; t.swp++;
+      t.emit(() => base({node:"sw", edge:"cim-neen", hl:{swap:[i, min]}, ptr:P(), msg:`Verwissel ${Ls(i)} en ${Ls(min)}: ${b} komt op sleutelpositie ${i}, ${a} gaat naar index ${min}.`}));
+    }
+    t.log.push({label:String(i), arr:L.slice(), bold:[i]});
+    const wasI = i; i++; min = null;
+    t.emit(() => base({node:"ii", edge: eq ? "cim-ja" : "sw-ii", ptr:P(), msg:`Index ${wasI} is definitief gesorteerd. i = i+1 = ${i}.`}));
+    into = "ii-ci";
+  }
+  t.emit(() => base({node:"print", edge:"ci-neen", fin:range(0, n), ptr:{}, msg:`schrijf L: ${fmt(L)} is gesorteerd.`}));
+  t.emit(() => base({node:"stop", edge:"pr-st", fin:range(0, n), ptr:{}, msg:"Einde van het algoritme."}));
+  return t;
+}
+
+/* ---------- insertion sort (flowchart §2.6.3) ---------- */
+function traceInsertion(input, light){
+  const t = new Tracer(light), L = input.slice(), n = L.length;
+  let k = null, j = null, sl = null, keyOrig = null;
+  const base = o => Object.assign({arr:L.slice(), vars:{n, k: k ?? undefined, sleutel: sl ?? undefined, j: j ?? undefined}, fin:[], part: k === null ? 0 : Math.min(k, n), ptr:{}, hl:{}, sleutel: sl, keyOrig}, o);
+  const P = () => { const p = {}; if (k !== null && k < n) p.k = k; if (j !== null && j >= 0) p.j = j; return p; };
+  t.emit(() => base({node:"start", vars:{}, msg:"Start van het algoritme."}));
+  t.emit(() => base({node:"input", edge:"s-in", vars:{}, msg:`L ← rij: de rij L = ${fmt(L)} wordt ingelezen.`}));
+  k = 0;
+  t.emit(() => base({node:"init1", edge:"in-i1", part:1, msg:`n = aantal elementen = ${n}, k = 0. Het meest linkse element vormt het gesorteerde deel.`}));
+  let into = "i1-i2";
+  for (;;){
+    k++; sl = null; j = null; keyOrig = null;
+    t.emit(() => base({node:"init2", edge:into, ptr:P(), msg:`k = k+1 = ${k}.`}));
+    const c = k >= n;
+    t.emit(() => base({node:"ck", edge:"i2-ck", ptr:P(), msg:`Is k ≥ n? ${k} ≥ ${n} → <b>${c ? "ja" : "neen"}</b>${c ? ": het niet gesorteerde deel is leeg." : ""}`}));
+    if (c) break;
+    sl = L[k]; j = k - 1; keyOrig = k;
+    t.emit(() => base({node:"kl", edge:"ck-neen", ptr:P(), msg:`sleutel = ${Ls(k)} = ${sl}. We vergelijken vanaf j = k−1 = ${j}, het meest rechtse element van het gesorteerde deel.`}));
+    let e = "kl-cj";
+    for (;;){
+      let c2;
+      if (j >= 0){ t.cmp++; c2 = L[j] > sl; } else c2 = false;
+      const jv = j;
+      t.emit(() => base({node:"cj", edge:e, hl: jv >= 0 ? {cmp:[jv]} : {}, ptr:P(),
+        msg: jv >= 0 ? `Is j ≥ 0 en ${Ls("j")} &gt; sleutel? ${jv} ≥ 0 en ${Ls(jv)} = ${L[jv]} &gt; ${sl} → <b>${c2 ? "ja" : "neen"}</b>`
+                     : `Is j ≥ 0? j = ${num(jv)}: het begin van de rij is bereikt → <b>neen</b>`}));
+      if (!c2) break;
+      L[j + 1] = L[j]; t.swp++; j--;
+      const w = j + 2;
+      t.emit(() => base({node:"ct", edge:"cj-ja", hl:{write:[w]}, ptr:P(), msg:`${Ls("j+1")} = ${Ls("j")}: ${L[w]} schuift één plaats naar rechts (naar index ${w}). j = j−1 = ${num(j)}.`}));
+      e = "ct-loop";
+    }
+    L[j + 1] = sl;
+    const pos = j + 1, kk = k;
+    t.log.push({label:String(kk), arr:L.slice(), bold:[]});
+    t.emit(() => base({node:"cf", edge:"cj-neen", hl:{write:[pos]}, part:kk + 1, sleutel:null, keyOrig:null, ptr:P(), msg:`${Ls("j+1")} = sleutel: ${sl} komt op index ${pos}. Het gesorteerde deel telt nu ${kk + 1} elementen.`}));
+    into = "cf-loop";
+  }
+  sl = null; j = null;
+  t.emit(() => base({node:"print", edge:"ck-ja", fin:range(0, n), part:0, ptr:{}, msg:`schrijf L: ${fmt(L)} is gesorteerd.`}));
+  t.emit(() => base({node:"stop", edge:"pr-st", fin:range(0, n), part:0, ptr:{}, msg:"stop: einde van het algoritme."}));
+  return t;
+}
+
+/* ---------- merge sort (pseudocode uit 'Verdeel en heers') ---------- */
+const MERGE_CODE = [
+  "procedure merge_sort(A)",
+  "    als lengte(A) <= 1 dan",
+  "        retourneer A",
+  "",
+  "    midden ← floor(lengte(A) / 2)",
+  "    Links ← merge_sort(A[1 .. midden])",
+  "    Rechts ← merge_sort(A[midden+1 .. lengte(A)])",
+  "",
+  "    retourneer merge(Links, Rechts)",
+  "",
+  "procedure merge(Links, Rechts)",
+  "    resultaat ← lege lijst",
+  "    zolang Links niet leeg en Rechts niet leeg doe",
+  "        als eerste element(Links) <= eerste element(Rechts) dan",
+  "            voeg eerste(Links) toe aan resultaat",
+  "            verwijder eerste(Links)",
+  "        anders",
+  "            voeg eerste(Rechts) toe aan resultaat",
+  "            verwijder eerste(Rechts)",
+  "    zolang Links niet leeg is doe",
+  "        voeg eerste(Links) toe aan resultaat",
+  "        verwijder eerste(Links)",
+  "    zolang Rechts niet leeg is doe",
+  "        voeg eerste(Rechts) toe aan resultaat",
+  "        verwijder eerste(Rechts)",
+  "    retourneer resultaat"
+];
+function traceMerge(input, light){
+  const t = new Tracer(light), n = input.length;
+  const nodes = [], stack = []; let nid = 0, calls = 0, panel = null;
+  const snap = () => nodes.map(o => ({...o, vals:o.vals.slice()}));
+  const emit = (line, msg, extra) => t.emit(() => Object.assign({line, msg, tree:snap(), stack:stack.map(f => ({...f})), panel: panel ? JSON.parse(JSON.stringify(panel)) : null, calls}, extra || {}));
+  function merge(Lq0, Rq0, node){
+    const Lq = Lq0.slice(), Rq = Rq0.slice(), res = [];
+    stack.push({label:`merge(${fmt(Lq0)}, ${fmt(Rq0)})`, node:node.id, m:true});
+    panel = {Links:Lq, Rechts:Rq, res, first:false, take:null};
+    const sync = (o) => { panel = Object.assign({Links:Lq.slice(), Rechts:Rq.slice(), res:res.slice(), first:false, take:null}, o || {}); };
+    sync(); emit(10, `merge(${fmt(Lq0)}, ${fmt(Rq0)}) wordt opgeroepen en komt bovenop de call stack.`);
+    emit(11, "resultaat ← lege lijst.");
+    for (;;){
+      const c = Lq.length > 0 && Rq.length > 0;
+      sync(); emit(12, `Zijn Links en Rechts allebei niet leeg? → <b>${c ? "ja" : "neen"}</b>`);
+      if (!c) break;
+      t.cmp++;
+      const a = Lq[0], b = Rq[0], le = a <= b;
+      sync({first:true}); emit(13, `Vergelijk de eerste elementen: ${a} &lt;= ${b}? → <b>${le ? "ja" : "neen"}</b>`);
+      if (le){ res.push(Lq.shift()); sync({take:"res"}); emit([14, 15], `${a} wordt aan resultaat toegevoegd en verdwijnt uit Links.`); }
+      else { res.push(Rq.shift()); sync({take:"res"}); emit([17, 18], `${b} wordt aan resultaat toegevoegd en verdwijnt uit Rechts.`); }
+    }
+    for (;;){
+      const c = Lq.length > 0;
+      sync(); emit(19, `Is Links niet leeg? → <b>${c ? "ja" : "neen"}</b>`);
+      if (!c) break;
+      const a = Lq.shift(); res.push(a); sync({take:"res"}); emit([20, 21], `${a} uit Links gaat zonder vergelijking naar resultaat.`);
+    }
+    for (;;){
+      const c = Rq.length > 0;
+      sync(); emit(22, `Is Rechts niet leeg? → <b>${c ? "ja" : "neen"}</b>`);
+      if (!c) break;
+      const b = Rq.shift(); res.push(b); sync({take:"res"}); emit([23, 24], `${b} uit Rechts gaat zonder vergelijking naar resultaat.`);
+    }
+    sync(); emit(25, `merge retourneert ${fmt(res)}.`);
+    stack.pop(); panel = null;
+    return res;
+  }
+  function ms(A, depth, start){
+    const node = {id:nid++, depth, start, len:A.length, vals:A.slice(), state:"call"};
+    nodes.push(node); calls++;
+    stack.push({label:`merge_sort(${fmt(A)})`, node:node.id});
+    emit(0, `merge_sort(${fmt(A)}) wordt opgeroepen en komt bovenop de call stack.`);
+    const base = A.length <= 1;
+    emit(1, `Is lengte(A) &lt;= 1? lengte = ${A.length} → <b>${base ? "ja" : "neen"}</b>`);
+    if (base){ node.state = "done"; emit(2, `Basisgeval: retourneer ${fmt(A)}. Deze oproep verdwijnt van de stack.`); stack.pop(); return A.slice(); }
+    const m = Math.floor(A.length / 2);
+    emit(4, `midden = floor(${A.length} / 2) = ${m}.`);
+    emit(5, `Links ← merge_sort(A[1 .. ${m}]) = merge_sort(${fmt(A.slice(0, m))}). De huidige oproep wacht op de stack.`);
+    const Lft = ms(A.slice(0, m), depth + 1, start);
+    emit(6, `Links = ${fmt(Lft)}. Nu Rechts ← merge_sort(A[${m + 1} .. ${A.length}]) = merge_sort(${fmt(A.slice(m))}).`);
+    const R = ms(A.slice(m), depth + 1, start + m);
+    emit(8, `Rechts = ${fmt(R)}. Beide helften zijn gesorteerd: retourneer merge(${fmt(Lft)}, ${fmt(R)}).`);
+    const res = merge(Lft, R, node);
+    node.vals = res; node.state = "done";
+    emit(8, `merge_sort(${fmt(A)}) retourneert ${fmt(res)} en verdwijnt van de stack.`);
+    stack.pop();
+    return res;
+  }
+  const out = ms(input.slice(), 0, 0);
+  emit(null, `Klaar: de gesorteerde lijst is ${fmt(out)}.`, {done:true});
+  t.calls = calls;
+  return t;
+}
+
+/* ---------- quick sort (pseudocode uit 'Verdeel en heers') ---------- */
+const PIVOTS = {
+  random: {label:"willekeurig (random)", code:["    // Kies een random pivot", "    retourneer A[random index]"]},
+  first:  {label:"eerste element", code:["    // Kies het eerste element", "    retourneer A[1]"]},
+  last:   {label:"laatste element", code:["    // Kies het laatste element", "    retourneer A[lengte(A)]"]},
+  middle: {label:"middelste element", code:["    // Kies het middelste element", "    retourneer A[ceil(lengte(A) / 2)]"]},
+  med3:   {label:"median-of-three", code:["    // Mediaan van eerste, middelste en laatste", "    retourneer mediaan(A[1], A[ceil(lengte(A) / 2)], A[lengte(A)])"]}
+};
+function quickCode(strat){
+  return ["procedure quick_sort(A)","","    als lengte(A) <= 1 dan","        retourneer A","",
+    "    pivot ← kies_pivot(A)","    kleinere_lijst ← lege lijst","    grotere_lijst ← lege lijst","",
+    "    voor elk element x in A zonder de pivot doe","        als x <= pivot dan","            voeg x toe aan kleinere_lijst","        anders","            voeg x toe aan grotere_lijst","",
+    "    retourneer quick_sort(kleinere_lijst) + [pivot] + quick_sort(grotere_lijst)","",
+    "procedure kies_pivot(A)", ...PIVOTS[strat].code];
+}
+function pickPivot(A, strat, rng){
+  const n = A.length, mid = Math.ceil(n / 2) - 1;
+  if (strat === "first") return 0;
+  if (strat === "last") return n - 1;
+  if (strat === "middle") return mid;
+  if (strat === "med3"){
+    const c = [0, mid, n - 1].map(i => [A[i], i]).sort((a, b) => a[0] - b[0]);
+    return c[1][1];
+  }
+  return Math.floor(rng() * n);
+}
+function traceQuick(input, light, opts){
+  const strat = (opts && opts.strat) || "random";
+  const rng = mulberry(hashArr(input) ^ ((opts && opts.salt) || 0) * 7919);
+  const t = new Tracer(light), n = input.length;
+  const nodes = [], stack = []; let nid = 0, calls = 0, panel = null;
+  const snap = () => nodes.map(o => ({...o, vals:o.vals.slice()}));
+  const emit = (line, msg, extra) => t.emit(() => Object.assign({line, msg, tree:snap(), stack:stack.map(f => ({...f})), panel: panel ? JSON.parse(JSON.stringify(panel)) : null, calls}, extra || {}));
+  function qs(A, depth, start){
+    const node = {id:nid++, depth, start, len:A.length, vals:A.slice(), state:"call", pv:-1};
+    nodes.push(node); calls++;
+    stack.push({label:`quick_sort(${fmt(A)})`, node:node.id});
+    panel = null;
+    emit(0, `quick_sort(${fmt(A)}) wordt opgeroepen en komt bovenop de call stack.`);
+    const base = A.length <= 1;
+    emit(2, `Is lengte(A) &lt;= 1? lengte = ${A.length} → <b>${base ? "ja" : "neen"}</b>`);
+    if (base){ node.state = "done"; emit(3, `Basisgeval: retourneer ${fmt(A)}${A.length ? "" : " (lege lijst)"}. Deze oproep verdwijnt van de stack.`); stack.pop(); return A.slice(); }
+    emit(5, "pivot ← kies_pivot(A).");
+    stack.push({label:`kies_pivot(${fmt(A)})`, node:node.id, m:true});
+    const pi = pickPivot(A, strat, rng), pivot = A[pi];
+    emit(19, `kies_pivot (${PIVOTS[strat].label}) kiest A[${pi + 1}] = ${pivot}.`);
+    stack.pop();
+    node.pv = pi;
+    const kl = [], gr = [];
+    panel = {pivot, x:null, kl:[], gr:[], rest:A.filter((_, i) => i !== pi)};
+    emit(5, `pivot = ${pivot}.`);
+    emit([6, 7], "kleinere_lijst en grotere_lijst zijn leeg.");
+    A.forEach((x, idx) => {
+      if (idx === pi) return;
+      panel.x = x;
+      emit(9, `Volgend element x = ${x}.`);
+      t.cmp++;
+      const le = x <= pivot;
+      emit(10, `Is x &lt;= pivot? ${x} &lt;= ${pivot} → <b>${le ? "ja" : "neen"}</b>`);
+      if (le){ kl.push(x); panel.kl = kl.slice(); emit(11, `${x} gaat naar kleinere_lijst.`); }
+      else { gr.push(x); panel.gr = gr.slice(); emit(13, `${x} gaat naar grotere_lijst.`); }
+      panel.rest = panel.rest.slice(1);
+    });
+    panel.x = null;
+    node.vals = [...kl, pivot, ...gr]; node.pv = kl.length; node.state = "split";
+    nodes.push({id:nid++, depth:depth + 1, start:start + kl.length, len:1, vals:[pivot], state:"pivot"});
+    emit(15, `Verdeeld: ${fmt(kl)} + [${pivot}] + ${fmt(gr)}. De pivot ${pivot} staat al op zijn definitieve plaats. Nu volgt quick_sort(kleinere_lijst).`);
+    const s1 = qs(kl, depth + 1, start);
+    panel = null;
+    emit(15, `quick_sort(kleinere_lijst) gaf ${fmt(s1)}. Nu volgt quick_sort(grotere_lijst) = quick_sort(${fmt(gr)}).`);
+    const s2 = qs(gr, depth + 1, start + kl.length + 1);
+    const res = [...s1, pivot, ...s2];
+    node.vals = res; node.state = "done"; node.pv = -1;
+    panel = null;
+    emit(15, `quick_sort(${fmt(A)}) retourneert ${fmt(s1)} + [${pivot}] + ${fmt(s2)} = ${fmt(res)}.`);
+    stack.pop();
+    return res;
+  }
+  const out = qs(input.slice(), 0, 0);
+  emit(null, `Klaar: de gesorteerde lijst is ${fmt(out)}.`, {done:true});
+  t.calls = calls;
+  return t;
+}
+
+/* ---------- flowcharts (zelfde vormen, tekst en layout als de TikZ-figuren) ---------- */
+const FC = {
+  bubble: { w:620, h:780,
+    nodes:{
+      start:{t:"term", x:300, y:30, w:120, h:36, L:["Start"]},
+      input:{t:"io", x:300, y:100, w:130, h:40, L:["L ← rij"]},
+      init:{t:"proc", x:300, y:175, w:220, h:50, L:["n = aantal getallen in L", "pass = 1"]},
+      ap:{t:"dec", x:300, y:265, w:170, h:64, L:["pass < n?"]},
+      initI:{t:"proc", x:300, y:355, w:120, h:40, L:["i = 0"]},
+      pg:{t:"dec", x:300, y:440, w:180, h:64, L:["i < n-pass?"]},
+      cmp:{t:"dec", x:300, y:540, w:170, h:64, L:["L_i > L_{i+1}"]},
+      swap:{t:"proc", x:300, y:635, w:210, h:40, L:["verwissel L_i met L_{i+1}"]},
+      ui:{t:"proc", x:300, y:720, w:120, h:40, L:["i = i+1"]},
+      up:{t:"proc", x:520, y:355, w:150, h:40, L:["pass = pass+1"]},
+      print:{t:"io", x:90, y:265, w:130, h:40, L:["schrijf L"]},
+      stop:{t:"term", x:90, y:350, w:120, h:36, L:["Einde"]}
+    },
+    edges:{
+      "s-in":{p:[[300,48],[300,80]]},
+      "in-init":{p:[[300,120],[300,150]]},
+      "init-ap":{p:[[300,200],[300,233]]},
+      "ap-ja":{p:[[300,297],[300,335]], l:"ja", lp:[290,320], a:"end"},
+      "ap-neen":{p:[[215,265],[157,265]], l:"neen", lp:[208,257], a:"end"},
+      "pr-st":{p:[[90,285],[90,332]]},
+      "initI-pg":{p:[[300,375],[300,408]]},
+      "pg-ja":{p:[[300,472],[300,508]], l:"ja", lp:[290,494], a:"end"},
+      "pg-neen":{p:[[390,440],[520,440],[520,375]], l:"neen", lp:[398,432], a:"start"},
+      "cmp-ja":{p:[[300,572],[300,615]], l:"ja", lp:[290,597], a:"end"},
+      "cmp-neen":{p:[[385,540],[440,540],[440,678],[302,678]], l:"neen", lp:[393,532], a:"start"},
+      "swap-ui":{p:[[300,655],[300,700]]},
+      "ui-pg":{p:[[300,740],[300,762],[175,762],[175,392],[298,392]]},
+      "up-ap":{p:[[520,335],[520,216],[302,216]]}
+    }},
+  selection: { w:640, h:810,
+    nodes:{
+      start:{t:"term", x:230, y:30, w:120, h:36, L:["Start"]},
+      input:{t:"io", x:230, y:95, w:130, h:40, L:["L ← rij"]},
+      init:{t:"proc", x:230, y:170, w:200, h:50, L:["n = aantal elementen", "i = 0"]},
+      ci:{t:"dec", x:230, y:265, w:160, h:64, L:["i < n-1?"]},
+      set:{t:"proc", x:230, y:355, w:130, h:50, L:["min = i", "j = i+1"]},
+      cj:{t:"dec", x:230, y:450, w:150, h:64, L:["j < n?"]},
+      cl:{t:"dec", x:230, y:550, w:170, h:64, L:["L_j < L_{min}?"]},
+      um:{t:"proc", x:230, y:640, w:130, h:40, L:["min = j"]},
+      ij:{t:"proc", x:230, y:730, w:130, h:40, L:["j = j+1"]},
+      cim:{t:"dec", x:500, y:550, w:150, h:64, L:["i = min?"]},
+      sw:{t:"proc", x:500, y:640, w:140, h:40, L:["L_i ⟷ L_{min}"]},
+      ii:{t:"proc", x:500, y:730, w:130, h:40, L:["i = i+1"]},
+      print:{t:"io", x:500, y:265, w:130, h:40, L:["schrijf L"]},
+      stop:{t:"term", x:500, y:345, w:120, h:36, L:["Einde"]}
+    },
+    edges:{
+      "s-in":{p:[[230,48],[230,75]]},
+      "in-init":{p:[[230,115],[230,145]]},
+      "init-ci":{p:[[230,195],[230,233]]},
+      "ci-ja":{p:[[230,297],[230,330]], l:"ja", lp:[220,318], a:"end"},
+      "ci-neen":{p:[[310,265],[433,265]], l:"neen", lp:[320,257], a:"start"},
+      "pr-st":{p:[[500,285],[500,327]]},
+      "set-cj":{p:[[230,380],[230,418]]},
+      "cj-ja":{p:[[230,482],[230,518]], l:"ja", lp:[220,505], a:"end"},
+      "cj-neen":{p:[[305,450],[500,450],[500,518]], l:"neen", lp:[315,442], a:"start"},
+      "cl-ja":{p:[[230,582],[230,620]], l:"ja", lp:[220,605], a:"end"},
+      "cl-neen":{p:[[145,550],[108,550],[108,686],[228,686]], l:"neen", lp:[140,542], a:"end"},
+      "um-ij":{p:[[230,660],[230,710]]},
+      "ij-cj":{p:[[230,750],[230,772],[62,772],[62,450],[155,450]]},
+      "cim-neen":{p:[[500,582],[500,620]], l:"neen", lp:[490,605], a:"end"},
+      "cim-ja":{p:[[575,550],[614,550],[614,686],[502,686]], l:"ja", lp:[583,542], a:"start"},
+      "sw-ii":{p:[[500,660],[500,710]]},
+      "ii-ci":{p:[[500,750],[500,795],[26,795],[26,216],[228,216]]}
+    }},
+  insertion: { w:660, h:720,
+    nodes:{
+      start:{t:"term", x:250, y:30, w:120, h:36, L:["Start"]},
+      input:{t:"io", x:250, y:95, w:130, h:40, L:["L ← rij"]},
+      init1:{t:"proc", x:250, y:170, w:200, h:50, L:["n = aantal elementen", "k = 0"]},
+      init2:{t:"proc", x:250, y:250, w:130, h:40, L:["k = k+1"]},
+      ck:{t:"dec", x:250, y:340, w:150, h:64, L:["k ≥ n?"]},
+      kl:{t:"proc", x:250, y:435, w:170, h:50, L:["sleutel = L_k", "j = k-1"]},
+      cj:{t:"dec", x:250, y:540, w:270, h:76, L:["j ≥ 0 & L_j > sleutel?"]},
+      ct:{t:"proc", x:250, y:640, w:150, h:50, L:["L_{j+1} = L_j", "j = j-1"]},
+      cf:{t:"proc", x:520, y:640, w:160, h:40, L:["L_{j+1} = sleutel"]},
+      print:{t:"io", x:520, y:340, w:130, h:40, L:["schrijf L"]},
+      stop:{t:"term", x:520, y:420, w:120, h:36, L:["stop"]}
+    },
+    edges:{
+      "s-in":{p:[[250,48],[250,75]]},
+      "in-i1":{p:[[250,115],[250,145]]},
+      "i1-i2":{p:[[250,195],[250,230]]},
+      "i2-ck":{p:[[250,270],[250,308]]},
+      "ck-ja":{p:[[325,340],[453,340]], l:"ja", lp:[335,332], a:"start"},
+      "pr-st":{p:[[520,360],[520,402]]},
+      "ck-neen":{p:[[250,372],[250,410]], l:"neen", lp:[240,395], a:"end"},
+      "kl-cj":{p:[[250,460],[250,502]]},
+      "cj-neen":{p:[[385,540],[520,540],[520,620]], l:"neen", lp:[393,532], a:"start"},
+      "cj-ja":{p:[[250,578],[250,615]], l:"ja", lp:[240,600], a:"end"},
+      "ct-loop":{p:[[250,665],[250,700],[100,700],[100,485],[248,485]]},
+      "cf-loop":{p:[[520,660],[520,700],[628,700],[628,213],[252,213]]}
+    }}
+};
+
+function svgRich(str){
+  // L_{j+1} en L_i → subscript via tspans
+  let out = "", rest = str; const re = /_\{([^}]*)\}|_([A-Za-z0-9])/;
+  let m;
+  while ((m = re.exec(rest))){
+    out += esc(rest.slice(0, m.index).replace(/-/g, "−"));
+    const sub = (m[1] ?? m[2]).replace(/-/g, "−").replace(/\+/g, "+");
+    out += `<tspan dy="4" font-size="10">${esc(sub)}</tspan><tspan dy="-4"></tspan>`;
+    rest = rest.slice(m.index + m[0].length);
+  }
+  out += esc(rest.replace(/-/g, "−"));
+  return out;
+}
+const NS = "http://www.w3.org/2000/svg";
+function buildFC(key, svg){
+  const d = FC[key];
+  svg.setAttribute("viewBox", `0 0 ${d.w} ${d.h}`);
+  let h = `<defs>
+    <marker id="${key}-m0" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--edge)"/></marker>
+    <marker id="${key}-m1" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--edge-used)"/></marker>
+    <marker id="${key}-m2" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker>
+  </defs><g class="edges">`;
+  for (const [id, e] of Object.entries(d.edges)){
+    h += `<polyline class="fe" data-e="${id}" points="${e.p.map(p => p.join(",")).join(" ")}" marker-end="url(#${key}-m0)"/>`;
+    if (e.l) h += `<text class="fl" x="${e.lp[0]}" y="${e.lp[1]}" text-anchor="${e.a}">${e.l}</text>`;
+  }
+  h += `</g><g class="nodes">`;
+  for (const [id, n] of Object.entries(d.nodes)){
+    const {x, y, w, h: hh} = n;
+    let shape;
+    if (n.t === "dec") shape = (cls) => `<polygon class="${cls}" points="${x},${y - hh/2} ${x + w/2},${y} ${x},${y + hh/2} ${x - w/2},${y}"/>`;
+    else if (n.t === "io"){ const s = 14; shape = (cls) => `<polygon class="${cls}" points="${x - w/2 + s/2},${y - hh/2} ${x + w/2 + s/2},${y - hh/2} ${x + w/2 - s/2},${y + hh/2} ${x - w/2 - s/2},${y + hh/2}"/>`; }
+    else shape = (cls) => `<rect class="${cls}" x="${x - w/2}" y="${y - hh/2}" width="${w}" height="${hh}" rx="${n.t === "term" ? hh/2 : 2}"/>`;
+    const lines = n.L, lh = 17, y0 = y - (lines.length - 1) * lh / 2 + 5;
+    const txt = lines.map((l, i) => `<tspan x="${x}" y="${y0 + i * lh}">${svgRich(l)}</tspan>`).join("");
+    h += `<g class="fn ${n.t}" data-n="${id}">${shape("halo")}${shape("")}<text>${txt}</text></g>`;
+  }
+  h += `</g><g class="badges">`;
+  for (const [id, e] of Object.entries(d.edges)){
+    let best = 0, bp = null;
+    for (let i = 1; i < e.p.length; i++){
+      const [a, b] = [e.p[i - 1], e.p[i]], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (L > best){ best = L; bp = [(a[0] + b[0]) / 2 + (a[0] === b[0] && L < 60 ? 24 : 0), (a[1] + b[1]) / 2]; }
+    }
+    if (e.bp) bp = e.bp;
+    h += `<g class="badge" data-b="${id}" transform="translate(${bp[0]},${bp[1]})" visibility="hidden"><rect x="-17" y="-9" width="34" height="18" rx="9"/><text y="4">×0</text></g>`;
+  }
+  h += `</g>`;
+  svg.innerHTML = h;
+}
+function updateFC(key, svg, step){
+  svg.querySelectorAll(".fn").forEach(g => g.classList.toggle("on", g.dataset.n === step.node));
+  svg.querySelectorAll(".fe").forEach(p => {
+    const id = p.dataset.e, c = step.edges[id] || 0, act = id === step.edge;
+    p.classList.toggle("used", c > 0); p.classList.toggle("act", act);
+    p.style.strokeWidth = act ? 2.8 : (c > 0 ? (1.6 + Math.min(1.6, Math.log2(1 + c) * 0.45)).toFixed(2) : 1.4);
+    p.setAttribute("marker-end", `url(#${key}-m${act ? 2 : c > 0 ? 1 : 0})`);
+  });
+  svg.querySelectorAll(".badge").forEach(b => {
+    const id = b.dataset.b, c = step.edges[id] || 0;
+    b.setAttribute("visibility", c > 1 ? "visible" : "hidden");
+    b.classList.toggle("act", id === step.edge);
+    b.querySelector("text").textContent = "×" + c;
+    const w = 14 + String(c).length * 7.5;
+    const r = b.querySelector("rect"); r.setAttribute("width", w); r.setAttribute("x", -w / 2);
+  });
+}
+
+/* ---------- algoritmen en hun paneel ---------- */
+const ALGOS = {
+  bubble:{ hash:"bubblesort", sec:"2.6.1", title:"Bubblesort", kind:"simple", trace:traceBubble, c2:"verwisselingen", bigo:"O(n²)",
+    intro:"De rij wordt meerdere keren doorlopen (passes of iteraties). Bij elke pass worden aangrenzende elementen vergeleken en indien nodig verwisseld. Na elke pass staat het grootste getal van het ongesorteerde deel achteraan.",
+    logHead:["pass", "L"], vars:["n", "pass", "i"] },
+  selection:{ hash:"selectionsort", sec:"2.6.2", title:"Selection sort", kind:"simple", trace:traceSelection, c2:"verwisselingen", bigo:"O(n²)",
+    intro:"Links groeit een gesorteerd deel, rechts krimpt het ongesorteerde deel. Per sleutelpositie i wordt de index min van het kleinste element in het ongesorteerde deel gezocht; daarna worden L<sub>i</sub> en L<sub>min</sub> verwisseld (indien min ≠ i).",
+    logHead:["Sleutelpositie i", "L"], vars:["n", "i", "j", "min"] },
+  insertion:{ hash:"insertionsort", sec:"2.6.3", title:"Insertion sort", kind:"simple", trace:traceInsertion, c2:"verschuivingen", bigo:"O(n²) in het slechtste geval",
+    intro:"Het eerste element van het niet gesorteerde deel wordt de sleutel. Grotere elementen uit het gesorteerde deel schuiven één plaats naar rechts, tot de juiste plaats voor de sleutel gevonden is: zoals je speelkaarten in je hand sorteert.",
+    logHead:["iteratie", "L"], vars:["n", "k", "sleutel", "j"] },
+  merge:{ hash:"mergesort", sec:"uitbreiding", title:"Merge sort", kind:"tree", trace:traceMerge, c2:"oproepen merge_sort", bigo:"O(n log n)",
+    intro:"Verdelen, sorteren, samenvoegen. De lijst wordt recursief gehalveerd tot lijsten van 0 of 1 element. Die worden met merge telkens samengevoegd tot één gesorteerde lijst." },
+  quick:{ hash:"quicksort", sec:"uitbreiding", title:"Quick sort", kind:"tree", trace:traceQuick, c2:"oproepen quick_sort", bigo:"gemiddeld O(n log n) · slechtst O(n²)",
+    intro:"Kies een pivot en verdeel de andere elementen over kleinere_lijst (x <= pivot) en grotere_lijst. Beide lijsten worden recursief gesorteerd. De pivot staat na het verdelen meteen op zijn definitieve plaats." }
+};
+const ORDER = ["bubble", "selection", "insertion"];
+const ICON = {
+  first:'<svg viewBox="0 0 16 16"><path d="M3 2h2v12H3zM14 2v12L6 8z"/></svg>',
+  back:'<svg viewBox="0 0 16 16"><path d="M12 2v12L4 8z"/></svg>',
+  play:'<svg viewBox="0 0 16 16"><path d="M4 2v12l10-6z"/></svg>',
+  pause:'<svg viewBox="0 0 16 16"><path d="M4 2h3v12H4zM9 2h3v12H9z"/></svg>',
+  fwd:'<svg viewBox="0 0 16 16"><path d="M4 2v12l8-6z"/></svg>',
+  last:'<svg viewBox="0 0 16 16"><path d="M11 2h2v12h-2zM2 2v12l8-6z"/></svg>'
+};
+
+function panelHTML(k){
+  const a = ALGOS[k];
+  const simple = a.kind === "simple";
+  const stage = simple
+    ? `<div class="card"><h3><span>Rij L${k === "insertion" ? ` <button class="chipbtn" id="ins-cards" aria-pressed="false">Hand speelkaarten</button>` : ""}</span> <small class="lgs">%LEGEND%</small></h3>
+         ${k === "insertion" ? `<div class="hand" id="ins-hand" hidden><div class="handgrid" id="ins-handgrid"></div><p class="handcap">Neem de volgende kaart uit je hand (de sleutel), schuif de grotere kaarten één plaats op en steek de sleutel in het gat.</p></div>` : ""}
+         <div class="stagewrap" id="${k}-stagewrap"><div class="barsw"><div class="bars" id="${k}-bars"></div><div class="lanes" id="${k}-lanes" data-stale="1"></div></div>${k === "insertion" ? `<div class="keybox"><div class="kv empty" id="${k}-key">–</div><span>sleutel</span></div>` : ""}</div></div>`
+    : `<div class="card"><h3>Recursieboom <small>één rij per niveau · groen = gesorteerd teruggegeven</small></h3>
+         <div class="tree" id="${k}-tree"></div></div>
+       <div class="card"><h3>${k === "merge" ? "merge(Links, Rechts)" : "Verdelen rond de pivot"} <small id="${k}-ptitle"></small></h3><div class="mpanel" id="${k}-panel"></div></div>`;
+  const side = simple
+    ? `<div class="card fccard"><h3>Flowchart §${a.sec} <small>×N = aantal keer dat een pijl doorlopen is</small></h3>
+         <div class="fcwrap"><svg id="${k}-fc" role="img" aria-label="Flowchart ${a.title}"></svg></div></div>`
+    : `<div class="card"><h3>Pseudocode <small>${k === "merge" ? "procedures merge_sort en merge" : "procedures quick_sort en kies_pivot"}</small></h3>
+         ${k === "quick" ? `<div class="sideopts"><label for="quick-strat">kies_pivot:</label><select id="quick-strat">${Object.entries(PIVOTS).map(([s, p]) => `<option value="${s}">${p.label}</option>`).join("")}</select><button class="chipbtn" id="quick-reroll">Andere random pivots</button></div>` : ""}
+         <div class="code" id="${k}-code"></div></div>
+       <div class="card"><h3>Call stack <small>bovenste oproep wordt uitgevoerd (LIFO)</small></h3><div class="stack" id="${k}-stack"></div></div>`;
+  const legend = simple
+    ? `<span class="lg"><i style="background:var(--cmp)"></i>vergelijken</span>${k === "insertion" ? `<span class="lg"><i style="background:var(--accent)"></i>overschrijven</span><span class="lg"><i style="background:var(--part)"></i>gesorteerd deel</span>` : `<span class="lg"><i style="background:var(--swap)"></i>verwisselen</span>`}<span class="lg"><i style="background:var(--done)"></i>definitief</span>`
+    : "";
+  return `<section class="panel" id="p-${k}" role="tabpanel" aria-labelledby="t-${k}" hidden>
+    <div class="player">
+      <button class="pbtn" data-act="first" title="Naar het begin" aria-label="Naar het begin">${ICON.first}</button>
+      <button class="pbtn" data-act="back" title="Stap terug (←)" aria-label="Stap terug">${ICON.back}</button>
+      <button class="pbtn play" data-act="play" id="${k}-play" title="Afspelen / pauze (spatie)" aria-label="Afspelen">${ICON.play}</button>
+      <button class="pbtn" data-act="fwd" title="Stap vooruit (→)" aria-label="Stap vooruit">${ICON.fwd}</button>
+      <button class="pbtn" data-act="last" title="Naar het einde" aria-label="Naar het einde">${ICON.last}</button>
+      <div class="progress"><i id="${k}-prog"></i></div>
+      <span class="stepno" id="${k}-stepno"></span>
+      <input type="range" class="speed" id="${k}-speed" min="1" max="10" value="5" title="Snelheid" aria-label="Snelheid">
+    </div>
+    <div class="grid">
+      <div class="col">
+        ${stage.replace("%LEGEND%", legend)}
+        <div class="narr" id="${k}-narr" aria-live="polite"></div>
+        <div class="card"><h3>Big-O-teller <small>stap = één vergelijking van twee elementen</small></h3>
+          <div class="stats">
+            <div class="counter c1"><b id="${k}-cmp">0</b><span>vergelijkingen</span></div>
+            <div class="counter c2"><b id="${k}-swp">0</b><span>${a.c2}</span></div>
+            <div class="vars" id="${k}-vars"></div>
+          </div>
+          <div class="meter" id="${k}-meter"></div>
+        </div>
+        ${simple ? `<div class="card"><h3>Tussenresultaten</h3><div class="logwrap" id="${k}-log"></div></div>` : ""}
+        <p class="intro">${a.intro} <span class="bigo">${a.bigo}</span></p>
+      </div>
+      <div class="col side">${side}</div>
+    </div>
+  </section>`;
+}
+
+/* ---------- toestand ---------- */
+const state = { cards:false, prevL:null, tab:"bubble", L:[6, 5, 4, 3, 2, 1], gen:"cursus", n:6, seed:12345, quick:{strat:"random", salt:0} };
+const P = {}; // per algoritme: {trace, idx, timer}
+const DELAY = [1600, 1100, 800, 560, 400, 270, 170, 100, 55, 25];
+
+function gen(kind, n){
+  const rnd = mulberry(state.seed);
+  const pool = range(1, Math.max(30, 2 * n + 4) + 1);
+  for (let i = pool.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const s = pool.slice(0, n);
+  const asc = s.slice().sort((a, b) => a - b);
+  if (kind === "cursus") return n === 6 ? [6, 5, 4, 3, 2, 1] : range(1, n + 1).reverse();
+  if (kind === "random") return s;
+  if (kind === "sorted") return asc;
+  if (kind === "reverse") return asc.reverse();
+  if (kind === "almost"){ const a = asc.slice(); const sw = Math.max(1, Math.round(n / 6)); for (let q = 0; q < sw; q++){ const i = Math.floor(rnd() * (n - 1)); [a[i], a[i + 1]] = [a[i + 1], a[i]]; } return a; }
+  return s;
+}
+
+function buildTrace(k){
+  const opts = k === "quick" ? state.quick : undefined;
+  const t = ALGOS[k].trace(state.L, false, opts);
+  const old = P[k];
+  if (old && old.timer) clearInterval(old.timer);
+  P[k] = {trace:t, idx:0, timer:null};
+  setupView(k);
+  render(k);
+}
+
+/* ---------- weergave ---------- */
+function setupView(k){
+  const a = ALGOS[k], t = P[k].trace, n = state.L.length;
+  if (a.kind === "simple"){
+    const bars = $(`#${k}-bars`);
+    bars.innerHTML = range(0, n).map(i => `<div class="colm"><div class="barbox"><div class="val"></div><div class="bar"></div></div><div class="idx">${i}</div></div>`).join("");
+    const lanes = $(`#${k}-lanes`), LN = LANES[k];
+    lanes.style.height = (LN.length * 21 + 4) + "px";
+    lanes.innerHTML = LN.map((names, li) => names.map(nm => `<span class="ptr lp p-${nm === "min" ? "min" : nm === "j" ? "j" : "i"}" data-p="${nm}" style="top:${4 + li * 21}px;opacity:0">${nm}</span>`).join("")).join("");
+    lanes.dataset.stale = "1";
+  } else {
+    const all = t.steps[t.steps.length - 1].tree;
+    const maxD = all.reduce((m, o) => Math.max(m, o.depth), 0);
+    const tree = $(`#${k}-tree`);
+    tree.style.height = ((maxD + 1) * 36) + "px";
+    tree.dataset.n = n;
+  }
+}
+
+function render(k){
+  const a = ALGOS[k], pl = P[k], t = pl.trace, st = t.steps[pl.idx], n = state.L.length;
+  $(`#${k}-narr`).innerHTML = st.msg;
+  $(`#${k}-stepno`).textContent = `${pl.idx + 1}/${t.steps.length}`;
+  $(`#${k}-prog`).style.width = (100 * pl.idx / Math.max(1, t.steps.length - 1)) + "%";
+  $(`#${k}-cmp`).textContent = st.cmp;
+  $(`#${k}-swp`).textContent = a.kind === "simple" ? st.swp : st.calls;
+  const prev = pl.idx > 0 ? t.steps[pl.idx - 1] : null;
+
+  if (a.kind === "simple"){
+    const max = Math.max(...st.arr, 1);
+    const cols = $(`#${k}-bars`).children;
+    const fin = new Set(st.fin), hl = st.hl || {};
+    const gap = k === "insertion" && st.sleutel != null ? st.vars.j + 1 : null;
+    for (let i = 0; i < n; i++){
+      const c = cols[i], v = st.arr[i];
+      c.querySelector(".val").textContent = v;
+      c.querySelector(".bar").style.height = `calc(${(v / max) * 100}% - 24px)`;
+      c.className = "colm" + (fin.has(i) ? " fin" : "") + (st.part && i < st.part && !fin.has(i) ? " part" : "")
+        + ((hl.cmp || []).includes(i) ? " cmp" : "") + ((hl.swap || []).includes(i) ? " swap" : "") + ((hl.write || []).includes(i) ? " write" : "")
+        + (gap === i ? " gap" : "") + (st.ptr && st.ptr.min === i ? " isMin" : "");
+    }
+    placeLanes(k, st);
+    if (k === "insertion"){
+      if (state.cards) renderHand(st, n);
+      const kv = $(`#${k}-key`);
+      kv.textContent = st.sleutel ?? "–"; kv.classList.toggle("empty", st.sleutel == null);
+    }
+    // variabelen
+    $(`#${k}-vars`).innerHTML = a.vars.filter(v => st.vars[v] !== undefined && st.vars[v] !== null).map(v => {
+      const chg = prev && prev.vars[v] !== st.vars[v];
+      return `<span class="var${chg ? " chg" : ""}">${v} = ${num(st.vars[v])}</span>`;
+    }).join("") || `<span class="empty">nog geen</span>`;
+    // log
+    const rows = t.log.slice(0, st.logLen);
+    $(`#${k}-log`).innerHTML = rows.length
+      ? `<table class="log"><thead><tr><th>${a.logHead[0]}</th><th>${a.logHead[1]}</th></tr></thead><tbody>${rows.map((r, ri) => `<tr class="${ri === rows.length - 1 && prev && prev.logLen < st.logLen ? "new" : ""}"><td>${r.label}</td><td>[${r.arr.map((v, i) => r.bold.includes(i) ? `<b>${v}</b>` : v).join(", ")}]</td></tr>`).join("")}</tbody></table>`
+      : `<p class="empty">De rij na elke iteratie verschijnt hier.</p>`;
+    updateFC(k, $(`#${k}-fc`), st);
+  } else {
+    renderTree(k, st, n);
+    renderPanel(k, st);
+    const code = k === "merge" ? MERGE_CODE : quickCode(state.quick.strat);
+    const on = new Set(st.line === null ? [] : [].concat(st.line));
+    $(`#${k}-code`).innerHTML = code.map((l, i) => `<div class="ln${on.has(i) ? " on" : ""}"><span class="no">${l === "" ? "" : i + 1}</span><span>${hlCode(l)}</span></div>`).join("");
+    const stk = st.stack.slice().reverse();
+    $(`#${k}-stack`).innerHTML = stk.length ? stk.map((f, i) => `<div class="frame${i === 0 ? " top" : ""}${f.m ? " m" : ""}">${esc(f.label)}</div>`).join("") : `<p class="empty">leeg: geen lopende oproepen</p>`;
+    $(`#${k}-vars`).innerHTML = `<span class="var">n = ${n}</span><span class="var">stackdiepte = ${st.stack.length}</span>`;
+  }
+  renderMeter(k, n, st.cmp);
+  const fwd = pl.prevIdx === pl.idx - 1; pl.prevIdx = pl.idx;
+  if (k === "insertion" && fwd) animateInsertion(st, n);
+  const playing = !!pl.timer;
+  const pb = $(`#${k}-play`);
+  pb.innerHTML = playing ? ICON.pause : ICON.play; pb.setAttribute("aria-label", playing ? "Pauze" : "Afspelen");
+}
+
+function hlCode(l){
+  let s = esc(l);
+  if (/^\s*\/\//.test(l)) return `<span class="cm">${s}</span>`;
+  return s.replace(/\b(procedure|als|dan|anders|retourneer|zolang|doe|voor elk|in|zonder)\b/g, '<span class="kw">$1</span>');
+}
+
+function renderTree(k, st, n){
+  const tree = $(`#${k}-tree`);
+  const topNode = st.stack.length ? st.stack[st.stack.length - 1].node : -1;
+  const onStack = new Set(st.stack.map(f => f.node));
+  tree.innerHTML = st.tree.filter(o => o.len > 0).map(o => {
+    let cls = "tnode";
+    if (o.state === "pivot") cls += " pivot";
+    else if (o.state === "done") cls += " done";
+    if (o.id === topNode && o.state !== "pivot") cls += " active";
+    else if (onStack.has(o.id) && o.state !== "pivot") cls += " wait";
+    const left = 100 * o.start / n, width = 100 * o.len / n;
+    const cells = o.vals.map((v, i) => `<span class="c${o.pv === i && (o.state === "split" || o.state === "call") ? " pv" : ""}">${v}</span>`).join("");
+    return `<div class="${cls}" style="left:calc(${left}% + 2px);width:calc(${width}% - 4px);top:${o.depth * 36}px" title="${o.state === "pivot" ? "pivot, definitief" : ""}">${cells}</div>`;
+  }).join("");
+}
+
+function cellsHTML(arr, opt){
+  opt = opt || {};
+  if (!arr.length) return `<span class="leeg">leeg</span>`;
+  return arr.map((v, i) => `<span class="c${opt.first && i === 0 ? " first" : ""}${opt.last && i === arr.length - 1 ? " take" : ""}${opt.pv ? " pv" : ""}">${v}</span>`).join("");
+}
+function renderPanel(k, st){
+  const el = $(`#${k}-panel`), p = st.panel;
+  if (!p){ el.innerHTML = `<p class="empty">${k === "merge" ? "Geen merge bezig. Zodra twee helften gesorteerd terugkomen, worden ze hier samengevoegd." : "Geen verdeling bezig. Zodra een oproep een pivot kiest, wordt de lijst hier verdeeld."}</p>`; return; }
+  if (k === "merge"){
+    el.innerHTML = `<div class="lrow"><span class="lab">Links</span><div class="cells">${cellsHTML(p.Links, {first:p.first})}</div></div>
+      <div class="lrow"><span class="lab">Rechts</span><div class="cells">${cellsHTML(p.Rechts, {first:p.first})}</div></div>
+      <div class="lrow"><span class="lab">resultaat</span><div class="cells">${cellsHTML(p.res, {last:p.take === "res"})}</div></div>`;
+  } else {
+    el.innerHTML = `<div class="lrow"><span class="lab">pivot</span><div class="cells">${cellsHTML([p.pivot], {pv:true})}</div></div>
+      <div class="lrow"><span class="lab">nog te verdelen</span><div class="cells">${cellsHTML(p.rest, {first:p.x !== null})}</div></div>
+      <div class="lrow"><span class="lab">kleinere_lijst</span><div class="cells">${cellsHTML(p.kl)}</div></div>
+      <div class="lrow"><span class="lab">grotere_lijst</span><div class="cells">${cellsHTML(p.gr)}</div></div>`;
+  }
+}
+
+function refs(n){
+  const lg = n * Math.log2(n);
+  return [
+    {lab:"n", v:n},
+    {lab:"n·log₂n", v:lg},
+    {lab:"n(n−1)/2", v:n * (n - 1) / 2},
+    {lab:"n²", v:n * n}
+  ];
+}
+function nf(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1).replace(".", ","); }
+function renderMeter(k, n, cmp){
+  const max = n * n, r = refs(n).slice().sort((a, b) => a.v - b.v);
+  let h = `<div class="track"><div class="fill" style="width:${Math.min(100, 100 * cmp / max)}%"></div></div>`;
+  r.forEach((o, i) => {
+    const x = 100 * o.v / max;
+    const edge = x > 92 ? " edge-r" : x < 6 ? " edge-l" : "";
+    h += `<div class="tick" style="left:${x}%"></div><div class="tl ${i % 2 ? "dn" : "up"}${edge}" style="left:${x}%">${o.lab} = ${nf(o.v)}</div>`;
+  });
+  $(`#${k}-meter`).innerHTML = h;
+
+}
+
+/* ---------- hand speelkaarten (insertion sort) ---------- */
+const HAND = [8, 3, 10, 5, 9, 2];
+const SUIT = {8:"♠", 3:"♥", 10:"♦", 5:"♣", 9:"♥", 2:"♠"};
+function cardHTML(v, cls){
+  const su = SUIT[v] || "♠", red = su === "♥" || su === "♦";
+  return `<div class="pcard${red ? " red" : ""}${cls ? " " + cls : ""}"><span class="cr">${v}<br>${su}</span><span class="cs">${su}</span></div>`;
+}
+function renderHand(st, n){
+  const gap = st.sleutel != null ? st.vars.j + 1 : null, hl = st.hl || {}, fin = new Set(st.fin);
+  const grid = $("#ins-handgrid");
+  grid.style.gridTemplateColumns = `repeat(${n}, minmax(0, 64px))`;
+  let top = "", bot = "", idx = "", ptr = "";
+  for (let i = 0; i < n; i++){
+    top += `<div class="lift">${gap === i ? cardHTML(st.sleutel, "key") : ""}</div>`;
+    if (gap === i) bot += `<div class="pslot"></div>`;
+    else bot += cardHTML(st.arr[i], ((hl.cmp || []).includes(i) ? "cmp" : (hl.write || []).includes(i) ? "write" : fin.has(i) ? "fin" : st.part && i < st.part ? "part" : ""));
+    idx += `<div class="idx">${i}</div>`;
+    const ps = Object.entries(st.ptr || {}).filter(([, v]) => v === i).map(([nm]) => `<span class="ptr p-${nm === "j" ? "j" : "i"}">${nm}</span>`).join("");
+    ptr += `<div class="ptrs">${ps}</div>`;
+  }
+  grid.innerHTML = top + bot + idx + ptr;
+}
+function setCards(on, silent){
+  state.cards = on;
+  const b = $("#ins-cards");
+  b.classList.toggle("on", on); b.setAttribute("aria-pressed", on);
+  $("#ins-hand").hidden = !on; $("#insertion-stagewrap").hidden = on;
+  if (silent) return;
+  if (on){ state.prevL = state.L.slice(); state.gen = "cards"; setL(HAND, true); }
+  else { state.gen = "custom"; setL(state.prevL || [6, 5, 4, 3, 2, 1], true); }
+}
+
+function animateInsertion(st, n){
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const dur = Math.max(90, Math.min(450, DELAY[+$("#insertion-speed").value - 1] * 0.7));
+  const opt = {duration:dur, easing:"cubic-bezier(.3,.7,.3,1)"};
+  const w = st.hl && st.hl.write ? st.hl.write[0] : null;
+  if (state.cards){
+    const g = $("#ins-handgrid"), ch = g.children, idx = g.querySelectorAll(".idx");
+    if (st.node === "ct" && w > 0){
+      const dx = idx[w].offsetLeft - idx[w - 1].offsetLeft;
+      ch[n + w].animate([{transform:`translateX(${-dx}px)`}, {transform:"none"}], opt);
+      const lift = ch[w - 1].firstElementChild;
+      if (lift) lift.animate([{transform:`translateX(${dx}px) rotate(-4deg)`}, {transform:"rotate(-4deg)"}], opt);
+    } else if (st.node === "kl"){
+      const lift = ch[st.vars.j + 1].firstElementChild;
+      if (lift) lift.animate([{transform:"translateY(96px)"}, {transform:"rotate(-4deg)"}], opt);
+    } else if (st.node === "cf" && w !== null){
+      ch[n + w].animate([{transform:"translateY(-96px) rotate(-4deg)"}, {transform:"none"}], opt);
+    }
+  } else if (st.node === "ct" && w > 0){
+    const cols = $("#insertion-bars").children;
+    const dx = cols[w].offsetLeft - cols[w - 1].offsetLeft;
+    cols[w].querySelector(".barbox").animate([{transform:`translateX(${-dx}px)`}, {transform:"none"}], opt);
+  }
+}
+
+const LANES = { bubble:[["i", "i+1"]], selection:[["i"], ["j"], ["min"]], insertion:[["k"], ["j"]] };
+function placeLanes(k, st){
+  const lanes = $(`#${k}-lanes`); if (!lanes) return;
+  const L = lanes.getBoundingClientRect();
+  if (!L.width){ lanes.dataset.stale = "1"; return; }
+  const stale = lanes.dataset.stale === "1";
+  if (stale) lanes.classList.add("noanim");
+  const cols = $(`#${k}-bars`).children;
+  lanes.querySelectorAll(".lp").forEach(el => {
+    const idx = (st.ptr || {})[el.dataset.p];
+    if (idx === undefined || !cols[idx]){ el.style.opacity = 0; return; }
+    const r = cols[idx].getBoundingClientRect();
+    el.style.left = (r.left - L.left + r.width / 2) + "px";
+    el.style.opacity = 1;
+  });
+  if (stale){ void lanes.offsetWidth; lanes.classList.remove("noanim"); lanes.dataset.stale = "0"; }
+}
+window.addEventListener("resize", () => { const l = $(`#${state.tab}-lanes`); if (l) l.dataset.stale = "1"; if (P[state.tab]) render(state.tab); });
+
+/* ---------- speler ---------- */
+function stepTo(k, i){
+  const pl = P[k], last = pl.trace.steps.length - 1;
+  pl.idx = Math.max(0, Math.min(last, i));
+  if (pl.idx === last) stop(k);
+  render(k);
+}
+function stop(k){ const pl = P[k]; if (pl.timer){ clearInterval(pl.timer); pl.timer = null; } }
+function play(k){
+  const pl = P[k];
+  if (pl.timer){ stop(k); render(k); return; }
+  if (pl.idx >= pl.trace.steps.length - 1) pl.idx = 0;
+  const d = DELAY[+$(`#${k}-speed`).value - 1];
+  pl.timer = setInterval(() => stepTo(k, pl.idx + 1), d);
+  render(k);
+}
+function restartTimer(k){ if (P[k] && P[k].timer){ stop(k); play(k); } }
+
+/* ---------- opbouw ---------- */
+function init(){
+  $("#tabs").innerHTML = ORDER.map(k => `<button class="tab" role="tab" id="t-${k}" aria-controls="p-${k}" data-k="${k}"><small>${ALGOS[k].sec === "uitbreiding" ? "uitbreiding" : "§" + ALGOS[k].sec}</small><b>${ALGOS[k].title}</b></button>`).join("");
+  $("#panels").innerHTML = ORDER.map(panelHTML).join("");
+  ORDER.forEach(k => {
+    if (ALGOS[k].kind === "simple") buildFC(k, $(`#${k}-fc`));
+    const panel = $(`#p-${k}`);
+    panel.querySelector(".player").addEventListener("click", e => {
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      const act = b.dataset.act, pl = P[k];
+      if (act === "play") return play(k);
+      stop(k);
+      if (act === "first") stepTo(k, 0);
+      if (act === "back") stepTo(k, pl.idx - 1);
+      if (act === "fwd") stepTo(k, pl.idx + 1);
+      if (act === "last") stepTo(k, pl.trace.steps.length - 1);
+    });
+    $(`#${k}-speed`).addEventListener("input", () => restartTimer(k));
+  });
+  if ($("#quick-strat")) $("#quick-strat").addEventListener("change", e => { state.quick.strat = e.target.value; $("#quick-reroll").hidden = state.quick.strat !== "random"; buildTrace("quick"); render("quick"); });
+  if ($("#quick-reroll")) $("#quick-reroll").addEventListener("click", () => { state.quick.salt++; buildTrace("quick"); render("quick"); });
+  $("#tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (b) selectTab(b.dataset.k, true); });
+  $("#tabs").addEventListener("keydown", e => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault(); e.stopPropagation();
+    const i = ORDER.indexOf(state.tab), j = (i + (e.key === "ArrowRight" ? 1 : ORDER.length - 1)) % ORDER.length;
+    selectTab(ORDER[j], true); $(`#t-${ORDER[j]}`).focus();
+  });
+  $("#ins-cards").addEventListener("click", () => setCards(!state.cards));
+  $("#presets").addEventListener("click", e => {
+    const b = e.target.closest("[data-gen]"); if (!b) return;
+    const g = b.dataset.gen;
+    if (g === "cursus"){ state.n = 6; $("#nIn").value = 6; }
+    if (g === "random" && state.gen === "random") state.seed = (state.seed * 1103515245 + 12345) >>> 0;
+    else if (g !== "cursus") state.seed = (state.seed * 69069 + 1) >>> 0;
+    state.gen = g; setL(gen(g, state.n));
+  });
+  $("#nIn").addEventListener("input", e => { state.n = +e.target.value; $("#nOut").textContent = state.n; setL(gen(state.gen === "custom" ? "random" : state.gen, state.n)); if (state.gen === "custom") state.gen = "random"; markPreset(); });
+  const Lin = $("#Lin");
+  const apply = () => {
+    const parts = Lin.value.split(/[\s,;]+/).filter(Boolean);
+    const vals = parts.map(Number);
+    const err = $("#Lerr");
+    if (vals.some(v => !Number.isInteger(v) || v < 0 || v > 99)) { err.textContent = "Gebruik enkel gehele getallen van 0 tot 99, gescheiden door komma's."; err.hidden = false; return; }
+    if (vals.length < 2 || vals.length > 16){ err.textContent = "Geef tussen 2 en 16 getallen in."; err.hidden = false; return; }
+    err.hidden = true;
+    if (vals.join() === state.L.join()) return;
+    state.gen = "custom"; state.n = vals.length; $("#nIn").value = Math.max(3, vals.length); $("#nOut").textContent = vals.length;
+    setL(vals);
+  };
+  Lin.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); apply(); } });
+  Lin.addEventListener("blur", apply);
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input,select,textarea")) return;
+    const k = state.tab;
+    if (e.key === "ArrowRight" && !e.target.closest(".tabs")){ e.preventDefault(); stop(k); stepTo(k, P[k].idx + 1); }
+    else if (e.key === "ArrowLeft" && !e.target.closest(".tabs")){ e.preventDefault(); stop(k); stepTo(k, P[k].idx - 1); }
+    else if (e.key === " " && !e.target.closest("button")){ e.preventDefault(); play(k); }
+  });
+  setL(state.L, true);
+  let start = "bubble";
+  const h = (location.hash || "").slice(1);
+  const fromHash = ORDER.find(k => ALGOS[k].hash === h);
+  if (fromHash) start = fromHash;
+  else { try { const s = localStorage.getItem("sorteerlab-tab"); if (s && ALGOS[s]) start = s; } catch (_) {} }
+  selectTab(start, false);
+}
+function markPreset(){ document.querySelectorAll("#presets .chipbtn").forEach(b => b.classList.toggle("on", b.dataset.gen === state.gen)); }
+function setL(vals, keepCards){
+  if (!keepCards && state.cards) setCards(false, true);
+  state.L = vals.slice();
+  $("#Lin").value = vals.join(", ");
+  $("#nOut").textContent = vals.length;
+  markPreset();
+  ORDER.forEach(k => buildTrace(k));
+}
+function selectTab(k, user){
+  ORDER.forEach(o => { if (o !== k) stop(o); $(`#p-${o}`).hidden = o !== k; $(`#t-${o}`).setAttribute("aria-selected", o === k); $(`#t-${o}`).tabIndex = o === k ? 0 : -1; });
+  state.tab = k;
+  render(k);
+  if (user){ try { localStorage.setItem("sorteerlab-tab", k); } catch (_) {} }
+}
+init();
+</script>
+
+</body></html>

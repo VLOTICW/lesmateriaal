@@ -1,0 +1,483 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Zeer elementaire computer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: werkblad met de machine (ruitjespapier) links, bediening + recept + logboek rechts; op gsm onder elkaar */
+:root {
+  --bg: #eef2f4;
+  --paper: #fbfcfc;
+  --grid: #dfe7ec;
+  --ink: #1e323c;
+  --muted: #5b6d77;
+  --line: #c9d4da;
+  --kader: #1c568e;
+  --kopie: #d4503c;
+  --terug: #1d8a8a;
+  --tint-kopie: #fbe4df;
+  --tint-kader: #e3edf7;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --paper: #151f27; --grid: #1f2c35; --ink: #dde7ed; --muted: #93a5b0;
+    --line: #2f3f4a; --kader: #7fb0e0; --kopie: #f07c67; --terug: #4cc4c4;
+    --tint-kopie: #3a2320; --tint-kader: #1a2b3b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --paper: #151f27; --grid: #1f2c35; --ink: #dde7ed; --muted: #93a5b0;
+  --line: #2f3f4a; --kader: #7fb0e0; --kopie: #f07c67; --terug: #4cc4c4;
+  --tint-kopie: #3a2320; --tint-kader: #1a2b3b; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-inline: 16px; padding-block: 24px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+header h1 { margin: 0; font-size: 1.6rem; line-height: 1.2; text-wrap: balance; color: var(--kader); }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.machine {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0;
+}
+.machine svg { width: 100%; height: auto; display: block; }
+
+.side { display: grid; gap: 16px; min-width: 0; }
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.panel h2 { margin: 0 0 10px; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.rij { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rij label { font-weight: 700; }
+.rij input {
+  flex: 1 1 160px; min-width: 0; font: 500 1rem var(--font-mono); color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px;
+}
+.fout { color: var(--kopie); font-size: 0.9rem; margin: 6px 0 0; min-height: 1.3em; }
+
+.knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: 700 0.95rem var(--font-body); cursor: pointer; border-radius: 4px; padding: 8px 14px;
+  border: 1px solid var(--kader); background: transparent; color: var(--kader);
+}
+button.primair { background: var(--kader); color: var(--paper); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--kopie); outline-offset: 2px; }
+.snelheid { display: flex; gap: 8px; align-items: center; margin-top: 10px; color: var(--muted); font-size: 0.9rem; }
+.snelheid select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+
+.status {
+  margin-top: 12px; padding: 10px 12px; border-radius: 4px; background: var(--tint-kader);
+  border-left: 4px solid var(--kader); min-height: 3.2em;
+}
+.status b { color: var(--kader); }
+
+ol.recept { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; counter-reset: r; }
+ol.recept li {
+  counter-increment: r; display: grid; grid-template-columns: 1.8em 1fr auto; gap: 6px; align-items: baseline;
+  padding: 5px 8px; border-radius: 4px; border: 1px solid transparent;
+}
+ol.recept li::before { content: counter(r) "."; font-family: var(--font-mono); color: var(--muted); }
+ol.recept li.laatste::before { content: "↻"; }
+ol.recept li .tag { font: 700 0.72rem var(--font-mono); letter-spacing: 0.05em; padding: 1px 6px; border-radius: 3px; }
+.tag.load { color: var(--kopie); border: 1px solid var(--kopie); }
+.tag.store { color: var(--terug); border: 1px solid var(--terug); }
+.tag.alu { color: var(--kader); border: 1px solid var(--kader); }
+ol.recept li.klaar { color: var(--muted); }
+ol.recept li.klaar::before { content: "✓"; color: var(--terug); }
+ol.recept li.nu { border-color: var(--kader); background: var(--tint-kader); font-weight: 700; }
+.fase-label { font-family: var(--font-mono); font-weight: 700; color: var(--kader); }
+
+.tabel-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+th, td { padding: 5px 8px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 0.78rem; color: var(--muted); font-weight: 700; }
+td { font-family: var(--font-mono); }
+td.som { font-weight: 700; color: var(--terug); }
+tr.nieuw td { animation: fris 1.2s ease-out; }
+@keyframes fris { from { background: var(--tint-kader); } to { background: transparent; } }
+
+/* SVG */
+.cel { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.cel.actief { fill: var(--tint-kopie); }
+.cel.somcel.actief { fill: var(--tint-kader); }
+.reg { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.alu { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; transition: fill .2s; }
+.alu.bezig { fill: var(--tint-kader); }
+.draad { stroke: var(--ink); stroke-width: 2; fill: none; }
+.lbl { fill: var(--ink); font-family: var(--font-body); font-size: 16px; }
+.lbl-klein { fill: var(--muted); font-family: var(--font-body); font-size: 15px; }
+.titel { fill: var(--ink); font-family: var(--font-body); font-size: 18px; font-weight: 700; letter-spacing: .06em; }
+.getal { fill: var(--ink); font-family: var(--font-mono); font-size: 19px; font-weight: 500; }
+.waarde { fill: var(--kopie); font-family: var(--font-mono); font-size: 22px; font-weight: 700; }
+.somtekst { fill: var(--ink); font-family: var(--font-mono); font-size: 18px; font-weight: 700; }
+.pad-kopie { stroke: var(--kopie); stroke-width: 2; fill: none; opacity: .45; transition: opacity .2s, stroke-width .2s; }
+.pad-terug { stroke: var(--terug); stroke-width: 2; fill: none; opacity: .45; transition: opacity .2s, stroke-width .2s; }
+.pad-kopie.aan, .pad-terug.aan { opacity: 1; stroke-width: 3.5; }
+.pijlpunt-kopie { fill: var(--kopie); }
+.pijlpunt-terug { fill: var(--terug); }
+.accolade { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+.wijzer { fill: var(--kopie); transition: transform .45s ease-in-out; }
+.fris { animation: pop .5s ease-out; }
+@keyframes pop { from { opacity: .2; } to { opacity: 1; } }
+.token-bol-kopie { fill: var(--kopie); }
+.token-bol-terug { fill: var(--terug); }
+.token-tekst { fill: #fff; font-family: var(--font-mono); font-size: 16px; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .wijzer, .alu, .pad-kopie, .pad-terug { transition: none; }
+  .fris, tr.nieuw td { animation: none; }
+}
+footer { color: var(--muted); font-size: 0.85rem; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Zeer elementaire computer</h1>
+    <p>Een computer die maar één ding kan: optellen. Volg stap voor stap hoe hij een rij getallen optelt. Hij verwerkt de getallen één na één, altijd met dezelfde stappen.</p>
+  </header>
+
+  <div class="main">
+    <div class="machine">
+      <svg id="svg" viewBox="0 0 700 600" role="img" aria-label="Schema van de zeer elementaire computer: geheugen, ingangen A en B, verwerkingseenheid en uitgang C"></svg>
+    </div>
+
+    <div class="side">
+      <section class="panel" aria-labelledby="h-bediening">
+        <h2 id="h-bediening">Bediening</h2>
+        <form class="rij" id="rijForm">
+          <label for="rijInput">Rij getallen</label>
+          <input id="rijInput" value="4, 2, 3, 6" inputmode="text" autocomplete="off" aria-describedby="rijFout">
+          <button type="submit">Rij laden</button>
+        </form>
+        <p class="fout" id="rijFout" aria-live="polite"></p>
+        <div class="knoppen">
+          <button class="primair" id="btnStap" type="button">Volgende stap</button>
+          <button id="btnFase" type="button">Hele fase</button>
+          <button id="btnSpeel" type="button">Afspelen</button>
+          <button id="btnReset" type="button">Opnieuw</button>
+        </div>
+        <div class="snelheid">
+          <label for="snelheid">Snelheid</label>
+          <select id="snelheid">
+            <option value="1.8">traag</option>
+            <option value="1" selected>normaal</option>
+            <option value="0.5">snel</option>
+          </select>
+          <span>· toets → = volgende stap</span>
+        </div>
+        <div class="status" id="status" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-recept">
+        <h2 id="h-recept">Het recept · <span class="fase-label" id="faseLabel">fase 1</span></h2>
+        <ol class="recept" id="recept">
+          <li>Kopieer het getal waar de pijl naar wijst naar A <span class="tag load">LOAD</span></li>
+          <li>Kopieer SOM naar B <span class="tag load">LOAD</span></li>
+          <li>De verwerkingseenheid telt op: C = A + B <span class="tag alu">+</span></li>
+          <li>Schrijf C weg naar SOM <span class="tag store">STORE</span></li>
+          <li class="laatste">De pijl schuift naar het volgende getal <span></span></li>
+        </ol>
+      </section>
+
+      <section class="panel" aria-labelledby="h-log">
+        <h2 id="h-log">Overzicht</h2>
+        <div class="tabel-wrap">
+          <table>
+            <thead><tr><th>fase</th><th>pijl wijst naar</th><th>A</th><th>B (oude SOM)</th><th>C = A + B</th><th>SOM</th></tr></thead>
+            <tbody id="tbody"><tr><td>start</td><td>—</td><td></td><td></td><td></td><td class="som">0</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+  <footer>Load/store-model: data gaat alleen via load (kopiëren naar A of B) en store (C wegschrijven) tussen het geheugen en de verwerkingseenheid.</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var svg = document.getElementById("svg");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // geometrie
+  var G = { memX: 110, memW: 180, cellH: 44, y0: 290,
+            A: { x: 180, y: 58, w: 120, h: 44 }, B: { x: 180, y: 142, w: 120, h: 44 },
+            alu: { x: 360, y: 50, w: 115, h: 145 }, C: { x: 525, y: 100, w: 110, h: 44 } };
+
+  var st;
+  function nieuweToestand(nums) {
+    return { nums: nums, p: 0, s: 0, A: null, B: null, C: null, SOM: 0, klaar: false, bezig: false, speelt: false, rijen: [] };
+  }
+  st = nieuweToestand([4, 2, 3, 6]);
+
+  function rijMidden(i) { return G.y0 + i * G.cellH + G.cellH / 2; }
+  function somIndex() { return st.nums.length + 2; }
+  function somMidden() { return rijMidden(somIndex()); }
+  function somOnder() { return G.y0 + (somIndex() + 1) * G.cellH; }
+
+  function el(tag, attrs, parent, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    (parent || svg).appendChild(e);
+    return e;
+  }
+
+  var refs = {};
+  function padA() { var y = rijMidden(st.p); return "M " + G.memX + " " + y + " H 72 V " + (G.A.y + G.A.h / 2) + " H " + (G.A.x - 2); }
+  function padB() { var y = somMidden(); return "M " + G.memX + " " + y + " H 42 V " + (G.B.y + G.B.h / 2) + " H " + (G.B.x - 2); }
+  function padStore() {
+    var cy = G.C.y + G.C.h / 2, yb = somOnder() + 30;
+    return "M " + (G.C.x + G.C.w) + " " + cy + " H 672 V " + yb + " H 250 V " + (somOnder() + 2);
+  }
+
+  function bouw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var n = st.nums.length;
+    var hoogte = somOnder() + 60;
+    svg.setAttribute("viewBox", "0 0 700 " + hoogte);
+
+    var defs = el("defs", {});
+    [["kopie", "pijlpunt-kopie"], ["terug", "pijlpunt-terug"]].forEach(function (d) {
+      var m = el("marker", { id: "m-" + d[0], viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, defs);
+      el("path", { d: "M0,0 L10,5 L0,10 z", "class": d[1] }, m);
+    });
+
+    // verwerkingseenheid
+    el("text", { x: G.alu.x + G.alu.w / 2, y: 22, "text-anchor": "middle", "class": "lbl" }, null, "verwerkings-");
+    el("text", { x: G.alu.x + G.alu.w / 2, y: 41, "text-anchor": "middle", "class": "lbl" }, null, "eenheid");
+    refs.alu = el("rect", { x: G.alu.x, y: G.alu.y, width: G.alu.w, height: G.alu.h, "class": "alu" });
+    el("text", { x: G.alu.x + G.alu.w / 2, y: G.alu.y + G.alu.h / 2 + 16, "text-anchor": "middle", "class": "getal", style: "font-size:52px" }, null, "+");
+
+    ["A", "B"].forEach(function (k) {
+      var r = G[k];
+      el("rect", { x: r.x, y: r.y, width: r.w, height: r.h, "class": "reg" });
+      el("text", { x: r.x - 12, y: r.y + r.h + 16, "class": "lbl", "font-weight": "700" }, null, k);
+      el("line", { x1: r.x + r.w, y1: r.y + r.h / 2, x2: G.alu.x, y2: r.y + r.h / 2, "class": "draad" });
+      refs[k] = el("text", { x: r.x + r.w / 2, y: r.y + r.h / 2 + 8, "text-anchor": "middle", "class": "waarde" }, null, "");
+    });
+    el("rect", { x: G.C.x, y: G.C.y, width: G.C.w, height: G.C.h, "class": "reg" });
+    el("line", { x1: G.alu.x + G.alu.w, y1: G.C.y + G.C.h / 2, x2: G.C.x, y2: G.C.y + G.C.h / 2, "class": "draad" });
+    el("text", { x: G.C.x + G.C.w / 2, y: G.C.y + G.C.h + 22, "text-anchor": "middle", "class": "lbl" }, null, "C = A + B");
+    refs.C = el("text", { x: G.C.x + G.C.w / 2, y: G.C.y + G.C.h / 2 + 8, "text-anchor": "middle", "class": "waarde" }, null, "");
+
+    // geheugen
+    el("text", { x: G.memX, y: G.y0 - 40, "class": "titel" }, null, "GEHEUGEN");
+    el("text", { x: G.memX + G.memW / 2, y: G.y0 - 10, "text-anchor": "middle", "class": "lbl" }, null, "⋮");
+    refs.cellen = [];
+    for (var i = 0; i < n + 3; i++) {
+      var isSom = i === somIndex();
+      var r = el("rect", { x: G.memX, y: G.y0 + i * G.cellH, width: G.memW, height: G.cellH, "class": "cel" + (isSom ? " somcel" : "") });
+      refs.cellen.push(r);
+      if (i < n) el("text", { x: G.memX + G.memW / 2 + 12, y: rijMidden(i) + 7, "text-anchor": "middle", "class": "getal" }, null, String(st.nums[i]));
+    }
+    refs.som = el("text", { x: G.memX + G.memW / 2, y: somMidden() + 7, "text-anchor": "middle", "class": "somtekst" }, null, "SOM = 0");
+    el("text", { x: G.memX + G.memW / 2 - 50, y: somOnder() + 20, "text-anchor": "middle", "class": "lbl" }, null, "⋮");
+
+    // accolades
+    function accolade(y1, y2, tekst1, tekst2) {
+      var x = G.memX + G.memW + 10, m = (y1 + y2) / 2, a = 8;
+      el("path", { d: "M " + x + " " + y1 + " q " + a + " 0 " + a + " " + a + " V " + (m - a) + " q 0 " + a + " " + a + " " + a + " q -" + a + " 0 -" + a + " " + a + " V " + (y2 - a) + " q 0 " + a + " -" + a + " " + a, "class": "accolade" });
+      el("text", { x: x + 26, y: m - 3, "class": "lbl-klein" }, null, tekst1);
+      el("text", { x: x + 26, y: m + 16, "class": "lbl-klein" }, null, tekst2);
+    }
+    accolade(G.y0 + 3, G.y0 + n * G.cellH - 3, "rij getallen die", "we willen optellen");
+    accolade(G.y0 + somIndex() * G.cellH + 3, somOnder() - 3, "plaatsje voor", "de som");
+
+    // datapaden
+    refs.padA = el("path", { d: padA(), "class": "pad-kopie", "marker-end": "url(#m-kopie)" });
+    refs.padB = el("path", { d: padB(), "class": "pad-kopie", "marker-end": "url(#m-kopie)" });
+    refs.padS = el("path", { d: padStore(), "class": "pad-terug", "marker-end": "url(#m-terug)" });
+    var mid = (G.A.y + somMidden()) / 2;
+    el("text", { x: 22, y: mid, "text-anchor": "middle", "class": "lbl-klein", transform: "rotate(-90 22 " + mid + ")", fill: "var(--kopie)", style: "fill: var(--kopie)" }, null, "waarden kopiëren (load)");
+    var mid2 = (G.C.y + somOnder()) / 2;
+    el("text", { x: 690, y: mid2, "text-anchor": "middle", "class": "lbl-klein", transform: "rotate(90 690 " + mid2 + ")", style: "fill: var(--terug)" }, null, "resultaat wegschrijven (store)");
+
+    // wijzer
+    refs.wijzer = el("path", { d: "M " + (G.memX + 14) + " " + (rijMidden(0) - 4) + " h 30 v -8 l 18 12 l -18 12 v -8 h -30 z", "class": "wijzer" });
+    refs.laag = el("g", {});
+  }
+
+  function zetWaarde(t, v) {
+    var nieuw = v === null ? "" : String(v);
+    if (t.textContent !== nieuw) {
+      t.textContent = nieuw;
+      t.classList.remove("fris"); t.getBBox(); t.classList.add("fris");
+    }
+  }
+
+  function tekenToestand() {
+    var n = st.nums.length;
+    zetWaarde(refs.A, st.A); zetWaarde(refs.B, st.B); zetWaarde(refs.C, st.C);
+    refs.som.textContent = "SOM = " + st.SOM;
+    var pz = Math.min(st.p, n - 1);
+    refs.wijzer.style.transform = "translate(0px," + (pz * G.cellH) + "px)";
+    refs.wijzer.style.opacity = st.klaar ? "0.3" : "1";
+    refs.cellen.forEach(function (c, i) { c.classList.toggle("actief", !st.klaar && i === pz); });
+    refs.cellen[somIndex()].classList.toggle("actief", st.klaar);
+    refs.padA.setAttribute("d", padA());
+
+    // recept
+    var items = document.querySelectorAll("#recept li");
+    items.forEach(function (li, i) {
+      li.classList.toggle("klaar", !st.klaar && i < st.s || st.klaar);
+      li.classList.toggle("nu", !st.klaar && i === st.s);
+    });
+    document.getElementById("faseLabel").textContent = st.klaar ? "klaar" : "fase " + (st.p + 1);
+
+    // knoppen
+    var uit = st.bezig || st.klaar;
+    document.getElementById("btnStap").disabled = uit || st.speelt;
+    document.getElementById("btnFase").disabled = uit || st.speelt;
+    var sp = document.getElementById("btnSpeel");
+    sp.disabled = st.klaar;
+    sp.textContent = st.speelt ? "Pauze" : "Afspelen";
+    document.getElementById("rijInput").disabled = st.speelt;
+  }
+
+  function status(html) { document.getElementById("status").innerHTML = html; }
+  function snel() { return parseFloat(document.getElementById("snelheid").value) || 1; }
+  function wacht(ms) { return new Promise(function (r) { setTimeout(r, reduce ? 0 : ms * snel()); }); }
+
+  function reis(pad, waarde, soort) {
+    return new Promise(function (klaar) {
+      pad.classList.add("aan");
+      var len = pad.getTotalLength();
+      var g = el("g", {}, refs.laag);
+      el("circle", { r: 17, "class": "token-bol-" + soort }, g);
+      el("text", { "text-anchor": "middle", y: 6, "class": "token-tekst" }, g, String(waarde));
+      var duur = reduce ? 0 : 1100 * snel();
+      var t0 = null;
+      function frame(t) {
+        if (t0 === null) t0 = t;
+        var f = duur === 0 ? 1 : Math.min(1, (t - t0) / duur);
+        var e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+        var pt = pad.getPointAtLength(e * len);
+        g.setAttribute("transform", "translate(" + pt.x + "," + pt.y + ")");
+        if (f < 1) requestAnimationFrame(frame);
+        else { refs.laag.removeChild(g); pad.classList.remove("aan"); klaar(); }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  function faseTxt() { return "<b>Fase " + (st.p + 1) + "</b> · "; }
+
+  async function stap() {
+    if (st.klaar || st.bezig) return;
+    st.bezig = true; tekenToestand();
+    var v;
+    switch (st.s) {
+      case 0:
+        v = st.nums[st.p];
+        status(faseTxt() + "stap 1 (load): het getal " + v + " wordt gekopieerd naar A.");
+        await reis(refs.padA, v, "kopie");
+        st.A = v; break;
+      case 1:
+        v = st.SOM;
+        status(faseTxt() + "stap 2 (load): SOM = " + v + " wordt gekopieerd naar B.");
+        await reis(refs.padB, v, "kopie");
+        st.B = v; break;
+      case 2:
+        refs.alu.classList.add("bezig");
+        status(faseTxt() + "stap 3: de verwerkingseenheid rekent C = " + st.A + " + " + st.B + " = " + (st.A + st.B) + ".");
+        await wacht(600);
+        st.C = st.A + st.B;
+        refs.alu.classList.remove("bezig"); break;
+      case 3:
+        status(faseTxt() + "stap 4 (store): C = " + st.C + " wordt weggeschreven naar SOM.");
+        await reis(refs.padS, st.C, "terug");
+        st.SOM = st.C;
+        st.rijen.push([st.p + 1, st.nums[st.p], st.A, st.B, st.C, st.SOM]);
+        voegRijToe(st.rijen[st.rijen.length - 1]);
+        status(faseTxt() + "SOM = " + st.SOM + " staat nu in het geheugen.");
+        break;
+      case 4:
+        if (st.p + 1 < st.nums.length) {
+          st.p++;
+          status("De pijl schuift naar het volgende getal (" + st.nums[st.p] + "). <b>Fase " + (st.p + 1) + "</b> begint.");
+          st.s = 0; st.bezig = false; tekenToestand();
+          await wacht(450);
+          return;
+        } else {
+          st.klaar = true;
+          status("Er is geen volgend getal meer. De computer stopt. In het geheugen staat <b>SOM = " + st.SOM + "</b>: de som van de hele rij.");
+        }
+        break;
+    }
+    st.s = (st.s + 1) % 5;
+    st.bezig = false; tekenToestand();
+  }
+
+  async function heleFase() {
+    var start = st.p;
+    do { await stap(); } while (!st.klaar && !(st.s === 0 && st.p !== start));
+  }
+
+  async function speel() {
+    if (st.speelt) { st.speelt = false; tekenToestand(); return; }
+    st.speelt = true; tekenToestand();
+    while (st.speelt && !st.klaar) {
+      await stap();
+      await wacht(350);
+    }
+    st.speelt = false; tekenToestand();
+  }
+
+  function voegRijToe(r) {
+    var tr = document.createElement("tr");
+    tr.className = "nieuw";
+    r.forEach(function (w, i) {
+      var td = document.createElement("td");
+      td.textContent = String(w);
+      if (i === 5) td.className = "som";
+      tr.appendChild(td);
+    });
+    document.getElementById("tbody").appendChild(tr);
+  }
+
+  function reset(nums) {
+    st.speelt = false;
+    st = nieuweToestand(nums || st.nums);
+    document.getElementById("tbody").innerHTML = '<tr><td>start</td><td>—</td><td></td><td></td><td></td><td class="som">0</td></tr>';
+    bouw(); tekenToestand();
+    status("De pijl wijst naar het eerste getal (" + st.nums[0] + ") en SOM = 0. Klik op <b>Volgende stap</b>.");
+  }
+
+  document.getElementById("rijForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var fout = document.getElementById("rijFout");
+    var delen = document.getElementById("rijInput").value.split(/[\s,;]+/).filter(function (x) { return x !== ""; });
+    var nums = delen.map(function (x) { return Number(x); });
+    if (nums.length < 1 || nums.length > 8) { fout.textContent = "Geef 1 tot 8 getallen, gescheiden door komma's."; return; }
+    if (nums.some(function (x) { return !Number.isInteger(x) || Math.abs(x) > 999; })) { fout.textContent = "Gebruik gehele getallen tussen -999 en 999."; return; }
+    fout.textContent = "";
+    reset(nums);
+  });
+  document.getElementById("btnStap").addEventListener("click", stap);
+  document.getElementById("btnFase").addEventListener("click", heleFase);
+  document.getElementById("btnSpeel").addEventListener("click", speel);
+  document.getElementById("btnReset").addEventListener("click", function () { reset(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" && document.activeElement.tagName !== "INPUT" && !st.speelt) { e.preventDefault(); stap(); }
+  });
+
+  reset([4, 2, 3, 6]);
+})();
+</script>
+
+</body></html>
