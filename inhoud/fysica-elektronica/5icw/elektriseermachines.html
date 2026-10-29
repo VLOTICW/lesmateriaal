@@ -1,0 +1,703 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Elektriseermachines</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: instrumentenkast — 3D-scène bovenaan, bediening en meetwaarden eronder. Bewust één donker thema: vonken en ladingsgloed lezen het best op donker. */
+:root{
+  --bg:#141210;
+  --panel:#1d1a16;
+  --line:#3a332a;
+  --fg:#ece4d6;
+  --muted:#a59a87;
+  --brass:#c9a35a;
+  --pos:#ef6a43;
+  --neg:#55a8ec;
+  --spark:#e9f1ff;
+  --f-display:"IM Fell DW Pica", "Iowan Old Style", Georgia, serif;
+  --f-body:"Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --f-data:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+header{display:grid;gap:4px}
+.eyebrow{font-family:var(--f-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,6vw,46px);line-height:1.05;margin:0;text-wrap:balance}
+h1 i{color:var(--brass)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:500 15px var(--f-body);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--bg);background:var(--brass);border-color:var(--brass)}
+.tab:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.stage{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg)}
+.view{position:relative;width:100%;aspect-ratio:16/10;max-width:100%}
+@media (max-width:640px){.view{aspect-ratio:1/1}}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#gl:active{cursor:grabbing}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;transform:translate(-50%,-100%);font:500 12px var(--f-body);color:var(--fg);background:rgba(20,18,16,.72);border:1px solid var(--line);border-radius:3px;padding:1px 6px;white-space:nowrap}
+.lbl.pos{color:var(--pos)} .lbl.neg{color:var(--neg)}
+.hint{position:absolute;left:10px;bottom:8px;font:12px var(--f-data);color:var(--muted);pointer-events:none}
+.resetv{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:10px;font:500 13px var(--f-body);background:rgba(20,18,16,.75);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:4px 10px;cursor:pointer}
+#chart{display:block;width:100%;height:90px;border-top:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+@media (max-width:720px){.grid{grid-template-columns:minmax(0,1fr)}}
+.controls{display:grid;gap:14px;align-content:start}
+.ctl{display:grid;gap:4px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl output{font-family:var(--f-data);color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--brass)}
+.row{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center}
+.check{display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer}
+.check input{accent-color:var(--brass);width:18px;height:18px}
+.btn{font:700 15px var(--f-body);border-radius:4px;padding:9px 16px;cursor:pointer;border:1px solid var(--brass);background:transparent;color:var(--brass)}
+.btn.primary{background:var(--brass);color:var(--bg)}
+.readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;align-content:start}
+.cell{background:var(--panel);padding:10px 12px;display:grid;gap:2px}
+.cell span{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cell b{font:500 22px var(--f-data);font-variant-numeric:tabular-nums}
+.cell b small{font-size:13px;color:var(--muted);margin-left:3px}
+.msg{grid-column:1/-1;background:var(--panel);padding:10px 12px;min-height:44px;font-size:15px}
+.msg.hit{color:var(--spark)}
+.text{display:grid;gap:10px;max-width:68ch}
+.text h2{font-family:var(--f-display);font-weight:400;font-size:24px;margin:0}
+.text p{margin:0}
+.model{border-top:1px solid var(--line);padding-top:12px;font-size:14px;color:var(--muted);max-width:75ch}
+.model b{color:var(--fg);font-weight:500}
+.model ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.err{padding:20px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Elektrostatica · interactief 3D-model</div>
+    <h1>Elektriseermachines <i>in werking</i></h1>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-wim" aria-selected="true">Wimshurst (1883)</button>
+    <button class="tab" role="tab" id="tab-fric" aria-selected="false">Wrijvingsmachine, Leiden 1746</button>
+  </div>
+
+  <div class="stage">
+    <div class="view" id="view">
+      <canvas id="gl" aria-label="3D-model van de elektriseermachine; sleep om te draaien"></canvas>
+      <div id="labels"></div>
+      <button class="resetv" id="resetView">Beginaanzicht</button>
+      <div class="hint">sleep = draaien · scroll/knijp = zoomen</div>
+    </div>
+    <canvas id="chart" aria-label="Spanning in functie van de tijd"></canvas>
+  </div>
+
+  <div class="grid">
+    <div class="controls">
+      <div class="ctl">
+        <label for="speed">Toerental <output id="speedOut">0,0 omw/s</output></label>
+        <input type="range" id="speed" min="0" max="4" step="0.1" value="0">
+      </div>
+      <div class="ctl" id="gapCtl">
+        <label for="gap">Vonkbrug (afstand tussen de bollen) <output id="gapOut">10 mm</output></label>
+        <input type="range" id="gap" min="2" max="25" step="1" value="10">
+      </div>
+      <label class="check"><input type="checkbox" id="jars" checked> <span id="jarsLbl">Schakelaar buitenbekledingen gesloten</span></label>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="showLoop" checked> Toon stroomkring</label>
+        <label class="check"><input type="checkbox" id="showLabels" checked> Toon benamingen</label>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="crank">Draai aan de slinger</button>
+        <button class="btn" id="discharge">Schuif de bollen samen</button>
+      </div>
+    </div>
+    <div class="readout">
+      <div class="cell"><span id="vLbl">Spanning over de vonkbrug</span><b id="rV">0,0<small>kV</small></b></div>
+      <div class="cell"><span>Lading op de condensator</span><b id="rQ">0<small>nC</small></b></div>
+      <div class="cell"><span>Opgeslagen energie</span><b id="rE">0<small>mJ</small></b></div>
+      <div class="cell"><span id="bLbl">Doorslag bij</span><b id="rB">30<small>kV</small></b></div>
+      <div class="msg" id="msg">Zet de schijven in beweging met de slinger of de schuifregelaar.</div>
+    </div>
+  </div>
+
+  <section class="text" id="txt"></section>
+  <section class="model" id="model"></section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+"use strict";
+if(!window.THREE){ document.getElementById('view').innerHTML='<p class="err">De 3D-bibliotheek kon niet geladen worden. Herlaad de pagina.</p>'; return; }
+
+// ================= declaratie =================
+const $ = id => document.getElementById(id);
+const cs = getComputedStyle(document.documentElement);
+const tok = n => cs.getPropertyValue(n).trim();
+const COL = { pos:new THREE.Color(tok('--pos')), neg:new THREE.Color(tok('--neg')), bg:tok('--bg'), muted:tok('--muted'), brass:tok('--brass'), spark:tok('--spark') };
+const nf = (x,d=1) => x.toLocaleString('nl-BE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const V3 = (x,y,z) => new THREE.Vector3(x,y,z);
+const UP = V3(0,1,0);
+const E_BREAK = 3000; // V/mm, homogeen veld, droge lucht (model)
+
+const S = { mode:'wim', rps:0, gap:10, strap:true, bottle:true, showLoop:true, showLabels:true, t:0, msg:'', hit:false };
+
+const machines = {
+  wim: { V:0, max:0, angle:0, history:[], gapEff:10, closing:0, spark:null,
+    C(){ return S.strap ? 275e-12 : 25e-12; },   // 2 flessen van 500 pF in serie + strooicapaciteit
+    I(rps,V){ return 2.5e-6*rps*(0.15+0.85*Math.min(1,V/5000)); },
+    R:60e9 },
+  fric:{ V:0, max:0, angle:0, history:[], reach:0, touching:0, hold:0, spark:null,
+    C(){ return S.bottle ? 500e-12 : 15e-12; },
+    I(rps){ return 1.0e-6*rps; },
+    R:2e10 }
+};
+
+// ================= three.js basis =================
+const canvas = $('gl');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+renderer.setClearColor(COL.bg);
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(COL.bg, 220, 420);
+const camera = new THREE.PerspectiveCamera(38, 1.6, 1, 1000);
+scene.add(new THREE.HemisphereLight(0xfff1dc, 0x2a2018, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85); sun.position.set(60,110,90); scene.add(sun);
+const fill = new THREE.PointLight(0xffd9a0, 0.5, 300); fill.position.set(-80,60,40); scene.add(fill);
+const flash = new THREE.PointLight(0xbfd4ff, 0, 160); scene.add(flash);
+const floor = new THREE.Mesh(new THREE.CircleGeometry(240,64), new THREE.MeshStandardMaterial({color:0x1c1814, roughness:1}));
+floor.rotation.x = -Math.PI/2; floor.position.y = -3.01; scene.add(floor);
+
+const M = {
+  brass: () => new THREE.MeshStandardMaterial({color:0xc9a35a, metalness:.65, roughness:.32, emissive:0x000000}),
+  tin:   () => new THREE.MeshStandardMaterial({color:0xb8b5ad, metalness:.7, roughness:.35, emissive:0x000000}),
+  wood:  new THREE.MeshStandardMaterial({color:0x5a3d27, roughness:.75}),
+  dark:  new THREE.MeshStandardMaterial({color:0x3a281b, roughness:.8}),
+  ebon:  new THREE.MeshStandardMaterial({color:0x121110, roughness:.35}),
+  iron:  () => new THREE.MeshStandardMaterial({color:0x4a4845, metalness:.7, roughness:.45, emissive:0x000000}),
+  belt:  new THREE.MeshStandardMaterial({color:0x6b4a2e, roughness:.9}),
+  glass: new THREE.MeshStandardMaterial({color:0xcfe8ee, transparent:true, opacity:.16, roughness:.05, depthWrite:false, side:THREE.DoubleSide}),
+  disc:  new THREE.MeshStandardMaterial({color:0xa9cdd6, transparent:true, opacity:.22, roughness:.05, depthWrite:false, side:THREE.DoubleSide}),
+  water: new THREE.MeshStandardMaterial({color:0x5f8fa3, transparent:true, opacity:.55, roughness:.2, emissive:0x000000}),
+  silk:  new THREE.MeshStandardMaterial({color:0xefe6cf, roughness:.9}),
+  leather:new THREE.MeshStandardMaterial({color:0x7a4a2a, roughness:.85, emissive:0x000000}),
+  skin:  new THREE.MeshStandardMaterial({color:0xb88d6c, roughness:.7, emissive:0x000000}),
+  cloth: new THREE.MeshStandardMaterial({color:0x3b3f52, roughness:.95, emissive:0x000000}),
+  brush: new THREE.MeshStandardMaterial({color:0xe8d7a8, roughness:.6})
+};
+
+function mesh(geo, mat, x=0,y=0,z=0){ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); return m; }
+function rod(a,b,r,mat,seg=16){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,seg),mat); setRod(m,a,b); return m; }
+function setRod(m,a,b){ const d=new THREE.Vector3().subVectors(b,a); const L=Math.max(1e-3,d.length()); m.position.copy(a).addScaledVector(d,.5); m.scale.set(1,L,1); m.quaternion.setFromUnitVectors(UP,d.divideScalar(L)); }
+function sphere(r,mat,p){ const m=new THREE.Mesh(new THREE.SphereGeometry(r,24,16),mat); if(p) m.position.copy(p); return m; }
+function glowMat(color,op){ return new THREE.MeshBasicMaterial({color, transparent:true, opacity:op, blending:THREE.AdditiveBlending, depthWrite:false}); }
+
+// labels
+const labelLayer = $('labels');
+const labels = []; // {el, pos, group}
+function addLabel(group, text, pos, cls=''){ const el=document.createElement('div'); el.className='lbl '+cls; el.textContent=text; labelLayer.appendChild(el); labels.push({el,pos,group}); return el; }
+
+// stroomkring: lijn + pulsen
+function makeLoop(group, segments){
+  // segments: [{pts:[V3...], dashed:bool}]
+  const lines=[];
+  for(const s of segments){
+    const geo=new THREE.BufferGeometry().setFromPoints(s.pts);
+    const mat = s.dashed ? new THREE.LineDashedMaterial({color:0xfff2c0, dashSize:1, gapSize:1, transparent:true, opacity:.8})
+                         : new THREE.LineBasicMaterial({color:0xfff2c0, transparent:true, opacity:.75});
+    const l=new THREE.Line(geo,mat); if(s.dashed) l.computeLineDistances(); l.renderOrder=5; group.add(l); lines.push(l);
+  }
+  return lines;
+}
+function makePath(pts){ const p=new THREE.CurvePath(); for(let i=0;i<pts.length-1;i++) p.add(new THREE.LineCurve3(pts[i],pts[i+1])); return p; }
+function makePulses(group, n){ const arr=[]; const mat=glowMat(0xfff6d0,1); for(let i=0;i<n;i++){ const s=sphere(.55,mat); s.visible=false; group.add(s); arr.push(s);} return {arr,mat}; }
+
+// vonk
+function buildSpark(a,b,E){
+  const g=new THREE.Group();
+  const d=new THREE.Vector3().subVectors(b,a), L=d.length();
+  const n1=new THREE.Vector3(0,1,0).cross(d).normalize(); if(n1.lengthSq()<.1) n1.set(1,0,0);
+  const n2=new THREE.Vector3().crossVectors(d,n1).normalize();
+  const pts=[]; const N=14, amp=Math.min(1.6,L*.18);
+  for(let i=0;i<=N;i++){ const t=i/N, e=(i===0||i===N)?0:1; pts.push(a.clone().addScaledVector(d,t).addScaledVector(n1,e*(Math.random()*2-1)*amp).addScaledVector(n2,e*(Math.random()*2-1)*amp)); }
+  const curve=new THREE.CatmullRomCurve3(pts);
+  const r=Math.min(.42, .07+.05*Math.sqrt(E*1e3));
+  const core=new THREE.Mesh(new THREE.TubeGeometry(curve,60,r,6,false), glowMat(0xf4f8ff,1));
+  const halo=new THREE.Mesh(new THREE.TubeGeometry(curve,60,r*3.5,8,false), glowMat(0x8fb4ff,.28));
+  g.add(core,halo); g.userData={mats:[core.material,halo.material], base:[1,.28]};
+  return g;
+}
+
+// ================= Wimshurst =================
+const wim = new THREE.Group(); scene.add(wim);
+const AX = 34, R = 20;
+{
+  wim.add(mesh(new THREE.BoxGeometry(82,3,34), M.wood, 0,-1.5,0));
+  wim.add(mesh(new THREE.BoxGeometry(84,.6,36), M.dark, 0,-3,0));
+  for(const z of [-6,6]){ wim.add(mesh(new THREE.BoxGeometry(3,AX+2,2.4), M.dark, 0,(AX+2)/2,z)); }
+  const axle=mesh(new THREE.CylinderGeometry(.6,.6,13,16), M.brass(), 0,AX,0); axle.rotation.x=Math.PI/2; wim.add(axle);
+}
+const sectorMats = {front:[], back:[]};
+const discs = {};
+function buildDisc(key, z, faceSign){
+  const g=new THREE.Group(); g.position.set(0,AX,z);
+  const d=mesh(new THREE.CylinderGeometry(R,R,.4,72), M.disc); d.rotation.x=Math.PI/2; g.add(d);
+  const rim=mesh(new THREE.TorusGeometry(R,.12,6,72), M.glass); g.add(rim);
+  for(let i=0;i<24;i++){
+    const beta=i*2*Math.PI/24;
+    const mat=M.tin(); sectorMats[key].push({mat,beta});
+    const s=mesh(new THREE.BoxGeometry(1.5,6.2,.1), mat, R*.79*Math.sin(beta), R*.79*Math.cos(beta), faceSign*.26);
+    s.rotation.z=-beta; g.add(s);
+  }
+  const pul=mesh(new THREE.CylinderGeometry(2.2,2.2,.9,24), M.wood, 0,0,faceSign*.75); pul.rotation.x=Math.PI/2; g.add(pul);
+  // spaken op de poelie maken de draaiing zichtbaar
+  for(let k=0;k<3;k++){ const sp=mesh(new THREE.BoxGeometry(.25,4.2,.15), M.dark, 0,0,faceSign*1.22); sp.rotation.z=k*Math.PI/3; g.add(sp); }
+  wim.add(g); discs[key]=g;
+}
+buildDisc('front', 1.0, +1);
+buildDisc('back', -1.0, -1);
+// neutralisatoren
+for(const [z,rot,fs] of [[3.0,Math.PI/4,1],[-3.0,-Math.PI/4,-1]]){
+  const g=new THREE.Group(); g.position.set(0,AX,z); g.rotation.z=rot;
+  g.add(rod(V3(0,-18.6,0),V3(0,18.6,0),.28,M.brass()));
+  g.add(sphere(.8,M.brass()));
+  for(const yy of [-18.2,18.2]) for(let k=-2;k<=2;k++){ g.add(rod(V3(k*.28,yy,0),V3(k*.28,yy,-fs*1.5),.07,M.brush,4)); }
+  wim.add(g);
+}
+// aandrijving: as, poelies, riemen (achterste gekruist), slinger
+const drive=new THREE.Group(); drive.position.set(0,6,0); wim.add(drive);
+{ const sh=mesh(new THREE.CylinderGeometry(.6,.6,20,16), M.brass(), 0,6,3); sh.rotation.x=Math.PI/2; wim.add(sh); }
+const drivePulleys=[];
+for(const z of [1.7,-1.7]){ const p=new THREE.Group(); p.position.set(0,6,z); const c=mesh(new THREE.CylinderGeometry(5,5,.9,32), M.wood); c.rotation.x=Math.PI/2; p.add(c); for(let k=0;k<3;k++){ const sp=mesh(new THREE.BoxGeometry(.35,9.4,.2), M.dark,0,0,Math.sign(z)*.5); sp.rotation.z=k*Math.PI/3; p.add(sp);} wim.add(p); drivePulleys.push(p); }
+// riemen: voor recht, achter gekruist
+wim.add(rod(V3(2.2,AX,1.7),V3(5,6,1.7),.22,M.belt,6)); wim.add(rod(V3(-2.2,AX,1.7),V3(-5,6,1.7),.22,M.belt,6));
+wim.add(rod(V3(2.2,AX,-1.7),V3(-5,6,-1.7),.22,M.belt,6)); wim.add(rod(V3(-2.2,AX,-1.7),V3(5,6,-1.7),.22,M.belt,6));
+const crank=new THREE.Group(); crank.position.set(0,6,13); wim.add(crank);
+crank.add(mesh(new THREE.BoxGeometry(1.2,8,.8), M.brass(), 0,4,0));
+{ const h=mesh(new THREE.CylinderGeometry(.7,.7,4,12), M.ebon, 0,8,2); h.rotation.x=Math.PI/2; crank.add(h); }
+
+// geleiders per zijde (rechts +, links −)
+const wimSide = {};
+for(const s of [1,-1]){
+  const brass=M.brass(), tinOut=M.tin(), tinIn=M.tin();
+  const X=29*s;
+  // kam: vork rond beide schijven
+  const fork=new THREE.Group(); wim.add(fork);
+  fork.add(rod(V3(X,AX,0),V3(21.8*s,AX,0),.45,brass));
+  fork.add(rod(V3(21.8*s,AX,-2.4),V3(21.8*s,AX,2.4),.45,brass));
+  for(const z of [-2.4,2.4]){
+    fork.add(rod(V3(21.8*s,AX,z),V3(13.5*s,AX,z),.35,brass));
+    for(let x=14;x<=21;x+=1.1){ const tooth=new THREE.Mesh(new THREE.ConeGeometry(.18,.9,6),brass); tooth.position.set(x*s,AX,z-Math.sign(z)*.6); tooth.rotation.x=Math.sign(z)>0?-Math.PI/2:Math.PI/2; fork.add(tooth); }
+  }
+  const knob=sphere(1.8,brass,V3(X,AX,0)); wim.add(knob);
+  // Leidse fles onder de kam
+  const jarG=new THREE.Group(); jarG.position.set(X,0,0); wim.add(jarG);
+  jarG.add(mesh(new THREE.CylinderGeometry(4.6,4.6,21,40,1,true), M.glass, 0,10.5,0));
+  { const bt=mesh(new THREE.CircleGeometry(4.6,40), M.glass, 0,.05,0); bt.rotation.x=-Math.PI/2; jarG.add(bt); }
+  jarG.add(mesh(new THREE.CylinderGeometry(4.75,4.75,12.5,40,1,true), tinOut, 0,6.5,0));
+  jarG.add(mesh(new THREE.CylinderGeometry(4.35,4.35,12.5,40,1,true), tinIn, 0,6.5,0));
+  jarG.add(mesh(new THREE.CylinderGeometry(4.9,4.9,1,40), M.dark, 0,21.3,0));
+  wim.add(rod(V3(X,1.5,0),V3(X,AX-1.6,0),.32,brass));            // binnenstaaf: binnenbekleding → kam
+  wim.add(rod(V3(X-.9,1.2,0),V3(X+.9,1.2,0),.2,brass));            // kettinkje op de bodem (contact binnenfolie)
+  // ontlader: scharniert op de kamknop, ebonieten handvat buitenaan
+  const arm=rod(V3(),V3(0,1,0),.32,brass); wim.add(arm);
+  const handle=rod(V3(),V3(0,1,0),.75,M.ebon); wim.add(handle);
+  const ball=sphere(1.3,brass); wim.add(ball);
+  const corona=sphere(2.2,glowMat(0x9c8cff,0)); wim.add(corona);
+  wimSide[s]={brass,tinOut,tinIn,arm,handle,ball,corona,X};
+}
+// verbinding buitenbekledingen + messchakelaar
+const strapMat=M.tin();
+wim.add(mesh(new THREE.BoxGeometry(26,.15,1.6), strapMat, -16,.08,0));
+wim.add(mesh(new THREE.BoxGeometry(26,.15,1.6), strapMat, 16,.08,0));
+for(const x of [-3,3]) wim.add(mesh(new THREE.BoxGeometry(1,1.8,1.6), M.brass(), x,.9,0));
+const blade=new THREE.Group(); blade.position.set(-3,1.6,0); wim.add(blade);
+blade.add(mesh(new THREE.BoxGeometry(6.2,.35,.9), strapMat, 3.1,0,0));
+{ const h=mesh(new THREE.CylinderGeometry(.5,.5,2,10), M.ebon, 6.2,1,0); blade.add(h); }
+
+// labels Wimshurst
+addLabel(wim,'voorschijf',V3(-12,AX+18,1.5));
+addLabel(wim,'achterschijf',V3(13,AX+16,-1.5));
+addLabel(wim,'neutralisator',V3(-13.2,AX+13.2,3.2));
+addLabel(wim,'collectorkam +',V3(22,AX+5.5,2.4),'pos');
+addLabel(wim,'collectorkam −',V3(-22,AX+5.5,2.4),'neg');
+addLabel(wim,'Leidse fles: binnen +',V3(29,23.5,4),'pos');
+addLabel(wim,'Leidse fles: binnen −',V3(-29,23.5,4),'neg');
+addLabel(wim,'schakelaar buitenbekledingen',V3(0,4.5,1));
+const lblGap = addLabel(wim,'vonkbrug',V3(0,64,0));
+addLabel(wim,'gekruiste riem',V3(-4,14,-2));
+
+// stroomkring Wimshurst
+const wimLoop = new THREE.Group(); wim.add(wimLoop);
+let wimLines=[], wimPathMain=null, wimPathStrap=null;
+const wimPulses = makePulses(wim, 28);
+function armGeom(s, gapMm){
+  const X=29*s, piv=V3(X,AX+1.8,0);
+  const bx=s*(gapMm/20+1.3), bp=V3(bx,60,0);
+  const dir=new THREE.Vector3().subVectors(piv,bp).normalize();
+  return {piv, bp, hEnd:piv.clone().addScaledVector(dir,6.5)};
+}
+function updateWimGeometry(gapMm){
+  for(const s of [1,-1]){
+    const g=armGeom(s,gapMm), w=wimSide[s];
+    setRod(w.arm,g.bp,g.hEnd); setRod(w.handle,g.piv.clone().addScaledVector(new THREE.Vector3().subVectors(g.hEnd,g.piv).normalize(),2.5),g.hEnd);
+    w.ball.position.copy(g.bp); w.corona.position.copy(g.bp).add(V3(-s*1,0,0));
+  }
+}
+let loopGap=-1;
+function disposeGroup(g){ g.children.forEach(c=>{ c.geometry&&c.geometry.dispose(); c.material&&c.material.dispose(); }); g.clear(); }
+function rebuildWimLoop(gapMm){
+  loopGap=gapMm; disposeGroup(wimLoop);
+  const R_=armGeom(1,gapMm), L_=armGeom(-1,gapMm);
+  const main=[V3(29,1.3,0),V3(29,AX,0),R_.piv,R_.bp.clone().add(V3(-1.3,0,0)),L_.bp.clone().add(V3(1.3,0,0)),L_.piv,V3(-29,AX,0),V3(-29,1.3,0)];
+  const strap=[V3(-29,.4,0),V3(29,.4,0)];
+  wimLines = makeLoop(wimLoop,[
+    {pts:main},{pts:strap},
+    {pts:[V3(-29,1.3,0),V3(-29,.4,0)],dashed:true},{pts:[V3(29,.4,0),V3(29,1.3,0)],dashed:true}
+  ]);
+  wimPathMain=makePath(main); wimPathStrap=makePath(strap);
+}
+
+// ================= Wrijvingsmachine =================
+const fric = new THREE.Group(); scene.add(fric);
+const G = V3(-36,26,0), GR=14, BAR_Y=51;
+{
+  fric.add(mesh(new THREE.BoxGeometry(124,3,46), M.wood, 0,-1.5,0));
+  for(const x of [-55,-17]) fric.add(mesh(new THREE.BoxGeometry(3,28,4), M.dark, x,14,0));
+  const sp=mesh(new THREE.CylinderGeometry(.8,.8,46,12), M.brass(), -36,26,0); sp.rotation.z=Math.PI/2; fric.add(sp);
+  // balk en palen voor de zijden koorden
+  fric.add(mesh(new THREE.BoxGeometry(110,3,3), M.dark, -2,92,-6));
+  for(const x of [-58,54]) fric.add(mesh(new THREE.BoxGeometry(3,93,3), M.dark, x,45.5,-6));
+  for(const x of [-18,22]){ fric.add(rod(V3(x-4,90.5,-6),V3(x,BAR_Y+1.2,0),.12,M.silk,5)); fric.add(rod(V3(x+4,90.5,-6),V3(x,BAR_Y+1.2,0),.12,M.silk,5)); }
+  // wrijfkussen op een paaltje
+  fric.add(mesh(new THREE.BoxGeometry(1.4,10.6,1.4), M.dark, G.x,5.3,0));
+}
+const cushion = mesh(new THREE.BoxGeometry(10,1.6,8), M.leather, G.x,G.y-GR-0.6,0); fric.add(cushion);
+const globe = new THREE.Group(); globe.position.copy(G); fric.add(globe);
+globe.add(sphere(GR, M.glass));
+for(const x of [-GR,GR]){ const c=mesh(new THREE.CylinderGeometry(2.2,2.2,1.4,20), M.brass(), x,0,0); c.rotation.z=Math.PI/2; globe.add(c); }
+const dots=[]; const dotGeo=new THREE.SphereGeometry(.42,8,6);
+for(let i=-3;i<=3;i++){ const x=i*GR*.27, rx=Math.sqrt(GR*GR-x*x); for(let k=0;k<12;k++){ const ph=k*2*Math.PI/12; const mat=new THREE.MeshBasicMaterial({color:0x6a7a80}); const d=mesh(dotGeo,mat,x,rx*Math.sin(ph),rx*Math.cos(ph)); globe.add(d); dots.push({d,mat}); } }
+const fcrank=new THREE.Group(); fcrank.position.set(-59.5,26,0); fric.add(fcrank);
+fcrank.add(mesh(new THREE.BoxGeometry(.8,9,1.2), M.brass(), 0,4.5,0));
+{ const h=mesh(new THREE.CylinderGeometry(.7,.7,4,12), M.ebon, -2,9,0); h.rotation.z=Math.PI/2; fcrank.add(h); }
+// kam boven de bol + ketting naar de loop
+const fBrass=M.brass();
+fric.add(rod(V3(G.x-3,G.y+GR+1.2,0),V3(G.x+3,G.y+GR+1.2,0),.3,fBrass));
+for(let x=-2.5;x<=2.5;x+=1){ const t=new THREE.Mesh(new THREE.ConeGeometry(.15,.8,5),fBrass); t.position.set(G.x+x,G.y+GR+.6,0); t.rotation.x=Math.PI; fric.add(t); }
+for(let y=G.y+GR+1.5, k=0; y<BAR_Y-1.2; y+=1.1, k++){ const l=mesh(new THREE.TorusGeometry(.45,.12,6,12), fBrass, G.x,y,0); l.rotation.y=k%2?Math.PI/2:0; l.scale.y=1.4; fric.add(l); }
+// geweerloop
+const ironMat=M.iron();
+{ const b=mesh(new THREE.CylinderGeometry(1.3,1.3,80,24), ironMat, -2,BAR_Y,0); b.rotation.z=Math.PI/2; fric.add(b);
+  const mz=mesh(new THREE.TorusGeometry(1.3,.25,8,20), ironMat, 38,BAR_Y,0); mz.rotation.y=Math.PI/2; fric.add(mz);
+  const br=mesh(new THREE.CylinderGeometry(1.7,1.7,4,20), M.dark, -42,BAR_Y,0); br.rotation.z=Math.PI/2; fric.add(br); }
+// fles met water, draad van de loop in het water
+const bottle=new THREE.Group(); bottle.position.set(36,6,0); fric.add(bottle);
+{
+  const prof=[[0,0],[5.6,0],[6,.6],[6,14],[5,17],[2.2,19.5],[2,24],[2.4,24.6]].map(p=>new THREE.Vector2(p[0],p[1]));
+  bottle.add(new THREE.Mesh(new THREE.LatheGeometry(prof,40), M.glass));
+  const wprof=[[0,.2],[5.6,.2],[5.7,.6],[5.7,12]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const w=new THREE.Mesh(new THREE.LatheGeometry(wprof,40), M.water); bottle.add(w);
+  const top=mesh(new THREE.CircleGeometry(5.7,40), M.water, 0,12,0); top.rotation.x=-Math.PI/2; bottle.add(top);
+  bottle.add(rod(V3(0,4,0),V3(0,BAR_Y-6,0),.18,fBrass));
+}
+const wireTop = rod(V3(36,BAR_Y,0),V3(36,BAR_Y-1,0),.18,fBrass); fric.add(wireTop);
+fric.add(rod(V3(36,BAR_Y-1,0),V3(38,BAR_Y,0),.18,fBrass));
+// demonstrator (gestileerd)
+const person=new THREE.Group(); fric.add(person);
+const SH_L=V3(34,58,-30), SH_R=V3(14,58,-30);
+person.add(mesh(new THREE.CylinderGeometry(9,8,34,24), M.cloth, 24,41,-30));
+person.add(sphere(6.5,M.skin,V3(24,72,-30)));
+for(const x of [20,28]) person.add(mesh(new THREE.CylinderGeometry(3,2.6,28,12), M.cloth, x,11,-30));
+person.add(mesh(new THREE.CylinderGeometry(2.6,3,4,12), M.skin, 24,63.5,-30));
+const limbs={};
+function limb(name){ const up=rod(V3(),V3(0,1,0),2.6,M.cloth,12), lo=rod(V3(),V3(0,1,0),2.1,M.cloth,12), el=sphere(2.5,M.cloth), sh=sphere(2.9,M.cloth), hand=sphere(2.3,M.skin), fing=rod(V3(),V3(0,1,0),.65,M.skin,8); hand.scale.set(1,.7,1.25); person.add(up,lo,el,sh,hand,fing); limbs[name]={up,lo,el,sh,hand,fing}; }
+limb('L'); limb('R');
+function ik(S_,T,L1,L2,pole){
+  const d=new THREE.Vector3().subVectors(T,S_); let D=d.length(); D=Math.min(D,L1+L2-.01); const dir=d.normalize();
+  const a=(L1*L1-L2*L2+D*D)/(2*D), h=Math.sqrt(Math.max(0,L1*L1-a*a));
+  const p=pole.clone().addScaledVector(dir,-pole.dot(dir)).normalize();
+  return S_.clone().addScaledVector(dir,a).addScaledVector(p,h);
+}
+function setLimb(name,S_,tip,pole){
+  const l=limbs[name];
+  const handC = tip.clone().add(V3(0,-2.2,0));
+  const E=ik(S_,handC,32,30,pole);
+  setRod(l.up,S_,E); setRod(l.lo,E,handC); l.el.position.copy(E); l.sh.position.copy(S_); l.hand.position.copy(handC);
+  setRod(l.fing,handC,tip);
+  return {E,handC};
+}
+setLimb('L',SH_L,V3(36,6.2,0),V3(1,-.6,.4));
+// de linkerhand omvat de fles: duim en vingers langs de buik van de fles
+{ const lh=limbs.L.hand; lh.position.set(36,4.4,0); lh.scale.set(2.8,.9,2.8); limbs.L.fing.visible=false;
+  for(let k=0;k<4;k++){ const a=-0.9+k*.6; fric.add(rod(V3(36+Math.cos(a)*6.3,4.6,Math.sin(a)*6.3),V3(36+Math.cos(a)*6.4,12,Math.sin(a)*6.4),.75,M.skin,8)); }
+}
+const FINGER_REST=V3(12,24,-10), FINGER_TOUCH=V3(10,BAR_Y+1.35,0);
+const fricSparkAnchor=V3(10,BAR_Y+1.3,0);
+
+addLabel(fric,'glazen bol',V3(G.x,G.y+GR+5,-6));
+addLabel(fric,'wrijfkussen (leder)',V3(G.x,G.y-GR-3.5,5),'neg');
+addLabel(fric,'ketting',V3(G.x+3,G.y+GR+5.5,0));
+addLabel(fric,'geweerloop (eerste conductor)',V3(-6,BAR_Y+4,0),'pos');
+addLabel(fric,'zijden koorden',V3(22,78,-3));
+addLabel(fric,'waterfles: water = binnenbekleding',V3(36,33,6),'pos');
+addLabel(fric,'hand = buitenbekleding',V3(44,6,6),'neg');
+addLabel(fric,'slinger',V3(-61,38,0));
+
+const fricLoop=new THREE.Group(); fric.add(fricLoop);
+let fricPath=null;
+function rebuildFricLoop(){
+  disposeGroup(fricLoop);
+  const R_=setLimb('R',SH_R,FINGER_TOUCH,V3(-.3,-1,.2));
+  const pts=[V3(36,12,0),V3(36,BAR_Y,0),V3(10,BAR_Y,0),FINGER_TOUCH.clone(),R_.handC,R_.E,SH_R,SH_L.clone(),ik(SH_L,V3(36,4.2,0),32,30,V3(1,-.6,.4)),V3(36,4.4,0)];
+  makeLoop(fricLoop,[{pts:pts.slice(0,3)},{pts:pts.slice(2)},{pts:[V3(36,4.4,0),V3(36,8,0)],dashed:true}]);
+  fricPath=makePath(pts);
+}
+const fricPulses=makePulses(fric,28);
+
+// ================= camera (eigen orbit) =================
+const VIEWS = { wim:{t:V3(0,30,0),az:.55,pol:1.18,r:135}, fric:{t:V3(0,40,-4),az:.35,pol:1.22,r:205} };
+const cam = {t:V3(),az:0,pol:0,r:0};
+function resetView(){ const v=VIEWS[S.mode]; cam.t.copy(v.t); cam.az=v.az; cam.pol=v.pol; cam.r=v.r; }
+function placeCam(){ camera.position.set(cam.t.x+cam.r*Math.sin(cam.pol)*Math.sin(cam.az), cam.t.y+cam.r*Math.cos(cam.pol), cam.t.z+cam.r*Math.sin(cam.pol)*Math.cos(cam.az)); camera.lookAt(cam.t); }
+const ptrs=new Map(); let pinch0=0, r0=0;
+canvas.addEventListener('pointerdown',e=>{ canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y); r0=cam.r; } });
+canvas.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)) return; const p=ptrs.get(e.pointerId);
+  if(ptrs.size===1){ cam.az-=(e.clientX-p.x)*.008; cam.pol=Math.min(1.5,Math.max(.25,cam.pol-(e.clientY-p.y)*.006)); }
+  p.x=e.clientX; p.y=e.clientY;
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch0>0) cam.r=Math.min(400,Math.max(50,r0*pinch0/d)); } });
+const up=e=>{ ptrs.delete(e.pointerId); pinch0=0; };
+canvas.addEventListener('pointerup',up); canvas.addEventListener('pointercancel',up);
+canvas.addEventListener('wheel',e=>{ e.preventDefault(); cam.r=Math.min(400,Math.max(50,cam.r*(1+Math.sign(e.deltaY)*.08))); },{passive:false});
+$('resetView').onclick=resetView;
+
+// ================= input =================
+function say(t,hit=false){ S.msg=t; S.hit=hit; }
+function setMode(m){
+  S.mode=m;
+  $('tab-wim').setAttribute('aria-selected',m==='wim'); $('tab-fric').setAttribute('aria-selected',m==='fric');
+  wim.visible=m==='wim'; fric.visible=m==='fric';
+  $('gapCtl').hidden=m!=='wim';
+  $('jarsLbl').textContent = m==='wim' ? 'Schakelaar buitenbekledingen gesloten' : 'Draad van de loop in de waterfles';
+  $('jars').checked = m==='wim' ? S.strap : S.bottle;
+  $('discharge').textContent = m==='wim' ? 'Schuif de bollen samen' : 'Raak de geweerloop aan';
+  $('vLbl').textContent = m==='wim' ? 'Spanning over de vonkbrug' : 'Spanning loop t.o.v. aarde';
+  $('bLbl').textContent = m==='wim' ? 'Doorslag bij' : 'Max. sinds start';
+  resetView(); renderText();
+  say(m==='wim' ? 'Zet de schijven in beweging met de slinger of de schuifregelaar.' : 'Draai de glazen bol. Het kussen wrijft, de ketting voert de lading naar de loop.');
+}
+$('tab-wim').onclick=()=>setMode('wim'); $('tab-fric').onclick=()=>setMode('fric');
+$('speed').oninput=e=>{ S.rps=+e.target.value; };
+$('gap').oninput=e=>{ S.gap=+e.target.value; };
+$('jars').onchange=e=>{
+  const m=machines[S.mode], Cold=m.C();
+  if(S.mode==='wim') S.strap=e.target.checked; else S.bottle=e.target.checked;
+  if(e.target.checked) m.V*=Cold/m.C(); // lege fles bijgeschakeld: lading verdeelt zich
+};
+$('showLoop').onchange=e=>{ S.showLoop=e.target.checked; };
+$('showLabels').onchange=e=>{ S.showLabels=e.target.checked; };
+$('crank').onclick=()=>{ S.rps = S.rps>0 ? 0 : 2; $('speed').value=S.rps; };
+$('discharge').onclick=()=>{ const m=machines[S.mode]; if(S.mode==='wim'){ if(!m.closing) m.closing=1; } else { if(!m.touching) { m.touching=1; m.hold=0; } } };
+
+// ================= logica (geen output) =================
+function charge(m,dt){
+  m.angle += S.rps*2*Math.PI*dt;
+  const Cc=m.C();
+  m.V += (m.I(S.rps,m.V) - m.V/m.R)/Cc*dt;
+  if(m.V<0) m.V=0;
+  m.max=Math.max(m.max,m.V);
+}
+function stepWim(m,dt){
+  charge(m,dt);
+  // bollen samenschuiven en terug
+  if(m.closing===1){ m.gapEff=Math.max(0,m.gapEff-30*dt); if(m.gapEff===0){ if(m.V>50){ m.V=0; say('Contact zonder vonk: de restspanning was te klein voor doorslag.'); } m.closing=2; } }
+  else if(m.closing===2){ m.gapEff=Math.min(S.gap,m.gapEff+20*dt); if(m.gapEff>=S.gap) m.closing=0; }
+  else m.gapEff=S.gap;
+  if(m.V>=E_BREAK*m.gapEff && m.V>300){
+    const E=.5*m.C()*m.V*m.V;
+    m.spark={t:0,E,gap:m.gapEff};
+    say(`Vonk: ${nf(E*1e3,E<.01?2:0)} mJ over ${nf(m.gapEff,0)} mm.${S.strap?' De flessen ontladen via de vonkbrug.':' Zonder flessen: kleine capaciteit, dunne vonk.'}`, true);
+    m.V*=.02; if(m.closing===1) m.closing=2;
+    return true;
+  }
+  return false;
+}
+function stepFric(m,dt){
+  charge(m,dt);
+  if(m.touching===1){ m.reach=Math.min(1,m.reach+.7*dt);
+    const tip=FINGER_REST.clone().lerp(FINGER_TOUCH,easeInOut(m.reach)); const gapMm=Math.max(0,(tip.distanceTo(FINGER_TOUCH)))*10;
+    if(m.V>800 && m.V>=E_BREAK*gapMm){ shock(m); m.touching=2; }
+    else if(m.reach>=1){ if(m.V>50) shock(m,true); else say('Niets gevoeld: de loop was nauwelijks geladen.'); m.touching=2; }
+  } else if(m.touching===2){ m.hold+=dt; if(m.hold>.9) m.touching=3; }
+  else if(m.touching===3){ m.reach=Math.max(0,m.reach-.9*dt); if(m.reach===0) m.touching=0; }
+}
+function shock(m,contact=false){
+  const E=.5*m.C()*m.V*m.V, V=m.V; m.V=0;
+  m.spark={t:0,E,contact};
+  if(!S.bottle) say(`Een tikje en een kleine vonk (${nf(E*1e3,2)} mJ bij ${nf(V/1000,1)} kV): alleen de loop was geladen.`,true);
+  else say(`Schok door armen en borst: ${nf(E*1e3,0)} mJ bij ${nf(V/1000,1)} kV. De stroom loopt van het water via loop, vinger, armen en borst naar de hand rond de fles.`,true);
+}
+
+// ================= output =================
+function signFront(th){ if(th>=315||th<90) return 1; if(th>=135&&th<270) return -1; return 0; }
+function signBack(th){ if(th>=270||th<45) return -1; if(th>=90&&th<225) return 1; return 0; }
+const tmpC=new THREE.Color();
+function setEm(mat,sign,amt){ if(sign===0||amt<=0){ mat.emissive.setRGB(0,0,0); return; } tmpC.copy(sign>0?COL.pos:COL.neg).multiplyScalar(amt); mat.emissive.copy(tmpC); }
+
+let sparkMesh=null, sparkOwner=null;
+function showSpark(group,a,b,E){ if(sparkMesh){ sparkOwner.remove(sparkMesh); } sparkMesh=buildSpark(a,b,E); sparkOwner=group; group.add(sparkMesh); flash.position.copy(a).lerp(b,.5); }
+function fadeSpark(sp){
+  if(!sparkMesh) return;
+  const a=Math.max(0,1-sp.t/.28);
+  sparkMesh.userData.mats.forEach((mm,i)=>mm.opacity=sparkMesh.userData.base[i]*a);
+  flash.intensity = 3.5*a*Math.min(1,Math.sqrt(sp.E*1e3)/4+.15);
+  if(a===0){ sparkOwner.remove(sparkMesh); sparkMesh=null; flash.intensity=0; }
+}
+function runPulses(p,paths,sp,dur){
+  const on = sp && sp.t<dur;
+  p.arr.forEach(s=>s.visible=false);
+  if(!on) return;
+  p.mat.opacity=Math.max(0,1-sp.t/dur);
+  let k=0; const per=Math.floor(p.arr.length/paths.length);
+  for(const path of paths){ for(let i=0;i<per;i++,k++){ const u=((sp.t*1.8)+i/per)%1; p.arr[k].position.copy(path.getPointAt(u)); p.arr[k].visible=true; } }
+}
+
+function drawWim(m,dt,sparked){
+  const rot=m.angle;
+  discs.front.rotation.z=-rot; discs.back.rotation.z=rot;
+  drivePulleys.forEach(p=>p.rotation.z=-rot*.44); crank.rotation.z=-rot*.44;
+  const lvl=Math.min(1,m.V/20000)+(S.rps>0?.18:0);
+  const deg=r=>((r*180/Math.PI)%360+360)%360;
+  for(const {mat,beta} of sectorMats.front) setEm(mat, signFront(deg(beta+rot)), .75*Math.min(1,lvl));
+  for(const {mat,beta} of sectorMats.back)  setEm(mat, signBack(deg(beta-rot)), .5*Math.min(1,lvl));
+  updateWimGeometry(m.gapEff);
+  if(Math.abs(loopGap-m.gapEff)>.05) rebuildWimLoop(m.gapEff);
+  const Vb=E_BREAK*m.gapEff, cond=Math.min(1,m.V/25000), share=S.strap?1:.08;
+  for(const s of [1,-1]){ const w=wimSide[s];
+    setEm(w.brass,s,.55*cond);
+    setEm(w.tinIn,s,.6*cond*share);
+    setEm(w.tinOut,-s,.6*cond*share);
+    const nearB=Vb>0?m.V/Vb:0; w.corona.material.opacity = nearB>.8 ? (nearB-.8)*1.6*(.6+.4*Math.random()) : 0;
+  }
+  setEm(strapMat,0,0);
+  blade.rotation.z = THREE.MathUtils.lerp(blade.rotation.z, S.strap?0:1.1, Math.min(1,dt*10));
+  lblGap.textContent=`vonkbrug ${nf(m.gapEff,0)} mm`;
+  if(sparked){ const a=wimSide[1].ball.position.clone().add(V3(-1.25,0,0)), b=wimSide[-1].ball.position.clone().add(V3(1.25,0,0)); showSpark(wim,b,a,m.spark.E); }
+  if(m.spark){ m.spark.t+=dt; fadeSpark(m.spark); }
+  if(m.spark && m.spark.t>1.2) m.spark=null;
+  const paths = S.strap ? [wimPathMain,wimPathStrap] : [wimPathMain];
+  runPulses(wimPulses,paths,m.spark,.7);
+  wimLoop.visible=S.showLoop;
+  wimLoop.children.forEach((l,i)=>{ if(i===1) l.material.opacity=S.strap?.75:.12; });
+}
+function drawFric(m,dt){
+  globe.rotation.x=-m.angle; fcrank.rotation.x=-m.angle;
+  const lvl=Math.min(1,m.V/30000), run=S.rps>0;
+  const tmp=new THREE.Vector3();
+  for(const {d,mat} of dots){ tmp.copy(d.position).applyEuler(globe.rotation); const front=tmp.z>0; if(front && (run||lvl>.02)){ mat.color.copy(COL.pos).multiplyScalar(.45+.55*Math.min(1,lvl+(run?.35:0))); } else mat.color.setRGB(.33,.38,.4); }
+  setEm(M.leather, -1, run?.35*Math.min(1,S.rps/2):0);
+  setEm(ironMat,1,.5*lvl); setEm(fBrass,1,.5*lvl);
+  setEm(M.water,1,S.bottle?.5*lvl:0);
+  bottle.visible=true; wireTop.visible=S.bottle; bottle.children[3].visible=S.bottle;
+  // rechterarm
+  const tip=FINGER_REST.clone().lerp(FINGER_TOUCH,easeInOut(m.reach));
+  setLimb('R',SH_R,tip,V3(-.3,-1,.2));
+  const sh = m.spark && m.spark.t<.5 ? (1-m.spark.t/.5) : 0;
+  const bodyGlow = S.bottle ? sh*Math.min(1,Math.sqrt(m.spark?m.spark.E*1e3:0)/12) : sh*.15;
+  M.skin.emissive.setRGB(.55*bodyGlow,.62*bodyGlow,.9*bodyGlow); M.cloth.emissive.setRGB(.25*bodyGlow,.3*bodyGlow,.45*bodyGlow);
+  if(m.spark && m.spark.t===0 && !m.spark.contact){ showSpark(fric,tip.clone(),fricSparkAnchor.clone(),m.spark.E); }
+  if(m.spark){ m.spark.t+=dt; fadeSpark(m.spark); if(m.spark.t>1.5) m.spark=null; }
+  if(!fricPath) rebuildFricLoop();
+  runPulses(fricPulses,[fricPath], (m.spark && S.bottle)?m.spark:null, .8);
+  fricLoop.visible=S.showLoop && S.bottle;
+}
+function easeInOut(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+
+function drawLabels(){
+  const w=canvas.clientWidth,h=canvas.clientHeight, p=new THREE.Vector3();
+  for(const L of labels){
+    const vis = S.showLabels && L.group.visible;
+    if(!vis){ L.el.hidden=true; continue; }
+    p.copy(L.pos).applyMatrix4(L.group.matrixWorld).project(camera);
+    if(p.z>1||p.x<-1.1||p.x>1.1||p.y<-1.1||p.y>1.1){ L.el.hidden=true; continue; }
+    L.el.hidden=false; L.el.style.left=((p.x+1)/2*w)+'px'; L.el.style.top=((1-p.y)/2*h)+'px';
+  }
+}
+
+const chart=$('chart'), cctx=chart.getContext('2d');
+function rgba(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function drawChart(m){
+  const dpr=Math.min(2,window.devicePixelRatio||1), w=chart.clientWidth, h=chart.clientHeight;
+  if(chart.width!==Math.round(w*dpr)){ chart.width=Math.round(w*dpr); chart.height=Math.round(h*dpr); }
+  cctx.setTransform(dpr,0,0,dpr,0,0); cctx.fillStyle=COL.bg; cctx.fillRect(0,0,w,h);
+  const span=12, now=S.t;
+  const vmax = S.mode==='wim' ? Math.max(10,S.gap*3*1.15) : 50;
+  const x0=48,x1=w-10,y0=h-18,y1=10, X=t=>x0+(t-(now-span))/span*(x1-x0), Y=v=>y0-(v/1000)/vmax*(y0-y1);
+  cctx.font='11px "IBM Plex Mono", monospace'; cctx.fillStyle=COL.muted; cctx.textAlign='right'; cctx.textBaseline='middle';
+  const st=vmax>60?20:vmax>30?10:5;
+  for(let v=0;v<=vmax;v+=st){ cctx.strokeStyle=rgba(COL.muted,.15); cctx.beginPath(); cctx.moveTo(x0,Y(v*1e3)); cctx.lineTo(x1,Y(v*1e3)); cctx.stroke(); cctx.fillText(v+' kV',x0-6,Y(v*1e3)); }
+  cctx.textAlign='left'; cctx.fillText('laatste 12 s',x0,h-7);
+  if(S.mode==='wim'){ const vb=E_BREAK*S.gap; cctx.strokeStyle=rgba(COL.spark,.5); cctx.setLineDash([4,4]); cctx.beginPath(); cctx.moveTo(x0,Y(vb)); cctx.lineTo(x1,Y(vb)); cctx.stroke(); cctx.setLineDash([]); cctx.textAlign='right'; cctx.fillStyle=COL.muted; cctx.fillText('doorslag',x1,Y(vb)-8); }
+  cctx.strokeStyle=COL.brass; cctx.lineWidth=1.8; cctx.beginPath(); let f=false;
+  for(const [t,v] of m.history){ if(t<now-span) continue; f?cctx.lineTo(X(t),Y(v)):cctx.moveTo(X(t),Y(v)); f=true; } cctx.stroke();
+}
+function updateReadout(m){
+  const Cc=m.C();
+  $('rV').innerHTML=`${nf(m.V/1000,1)}<small>kV</small>`;
+  $('rQ').innerHTML=`${nf(Cc*m.V*1e9,0)}<small>nC</small>`;
+  $('rE').innerHTML=`${nf(.5*Cc*m.V*m.V*1e3,m.V<5000?2:0)}<small>mJ</small>`;
+  $('rB').innerHTML = S.mode==='wim' ? `${nf(E_BREAK*S.gap/1000,0)}<small>kV</small>` : `${nf(m.max/1000,1)}<small>kV</small>`;
+  $('speedOut').textContent=`${nf(S.rps,1)} omw/s`; $('gapOut').textContent=`${S.gap} mm`;
+  $('crank').textContent = S.rps>0?'Stop met draaien':'Draai aan de slinger';
+  const el=$('msg'); if(el.textContent!==S.msg) el.textContent=S.msg; el.classList.toggle('hit',S.hit);
+}
+function resize(){ const w=canvas.clientWidth,h=canvas.clientHeight; if(canvas.width!==Math.round(w*renderer.getPixelRatio())||canvas.height!==Math.round(h*renderer.getPixelRatio())){ renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); } }
+
+// ================= hoofdlus =================
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now; S.t+=dt;
+  const m=machines[S.mode];
+  if(S.mode==='wim'){ const sparked=stepWim(m,dt); drawWim(m,dt,sparked); }
+  else { const before=m.spark; stepFric(m,dt); drawFric(m,dt); }
+  m.history.push([S.t,m.V]); while(m.history.length&&m.history[0][0]<S.t-13) m.history.shift();
+  resize(); placeCam(); renderer.render(scene,camera); drawLabels(); drawChart(m); updateReadout(m);
+  requestAnimationFrame(frame);
+}
+
+// ================= teksten =================
+function renderText(){
+  if(S.mode==='wim'){
+    $('txt').innerHTML=`<h2>Wat je ziet</h2>
+    <p>Twee glazen schijven met tinnen sectoren draaien in tegengestelde zin: de voorste riem loopt recht, de achterste is gekruist. Elke neutralisator verbindt twee diametraal tegenover elkaar liggende sectoren op dezelfde schijf. Staat er tegenover zo’n sector een geladen sector op de andere schijf, dan krijgt hij door influentie lading van het tegengestelde teken. De collectorkammen nemen die lading af: rechts <span class="pos">positief</span>, links <span class="neg">negatief</span>.</p>
+    <p>Elke kam is via een koperen staaf verbonden met de binnenbekleding van een Leidse fles, en via de scharnierende ontlader met een bol van de vonkbrug. De twee buitenbekledingen zijn onderling verbonden via een strook onder de flessen met een schakelaar. Zo staan de twee flessen in serie over de vonkbrug. Bij doorslag ontladen ze samen: de stroom loopt van de positieve binnenbekleding over de vonk naar de negatieve binnenbekleding, en in de buitenkring van links naar rechts.</p>
+    <p>Open de schakelaar en vergelijk. De flessen hangen dan los; er blijft alleen de kleine strooicapaciteit van de geleiders over. Gevolg: veel vaker een vonk, maar dun en zwak (E = ½·C·U²).</p>`;
+  } else {
+    $('txt').innerHTML=`<h2>Wat je ziet</h2>
+    <p>Rond 1745 werd een glazen bol rondgedraaid en afgewreven met de droge hand of een leren kussen. Het glas wordt daarbij <span class="pos">positief</span>, het kussen <span class="neg">negatief</span> (het kussen is via tafel en bediener geaard). Een ketting voert de lading naar een ijzeren geweerloop die aan zijden koorden hangt: de eerste conductor.</p>
+    <p>In Leiden liet Pieter van Musschenbroek in 1746 een draad van de loop in een fles met water hangen. Wie de fles in de ene hand hield en met de andere de loop aanraakte, sloot de kring door het eigen lichaam: water, draad, loop, vinger, armen en borst, en terug naar de hand rond de fles. Water en hand vormen de binnen- en buitenbekleding van wat later de Leidse fles heet.</p>
+    <p>Vergelijk de aanraking met en zonder fles. De spanning is ongeveer dezelfde, maar de fles stockeert vele malen meer lading.</p>`;
+  }
+  $('model').innerHTML=`<b>Model, geen werkelijkheid.</b> De animatie toont de werking kwalitatief; de getallen komen uit een vereenvoudigd RC-model met geschatte ordes van grootte:
+  <ul>${S.mode==='wim'?`
+    <li>Laadstroom evenredig met het toerental (≈ 2,5 µA per omw/s), met een eenvoudige opstartfactor voor de zelfbekrachtiging.</li>
+    <li>Twee flessen van elk 500 pF in serie (250 pF) plus 25 pF strooicapaciteit; met open schakelaar enkel de 25 pF. Lekweerstand 60 GΩ.</li>
+    <li>Doorslag bij 3 kV/mm. Dat geldt voor een homogeen veld in droge lucht; tussen bollen en bij grotere afstanden ligt de doorslagspanning per mm in werkelijkheid lager, en vochtige lucht verlaagt ze verder.</li>
+    <li>De kleur van sectoren en geleiders toont enkel het teken en een relatieve grootte van de lading. De lichtpuntjes na een vonk tonen de conventionele stroomzin, geen werkelijke snelheid; de stippellijn door het glas is de verplaatsingsstroom in het diëlektricum.</li>`:`
+    <li>Laadstroom evenredig met het toerental (≈ 1 µA per omw/s).</li>
+    <li>Capaciteit: 15 pF voor de loop alleen, 500 pF met de waterfles (sterk afhankelijk van fles en hand). Lek via lucht en koorden: 20 GΩ.</li>
+    <li>De vonk springt over zodra U ≥ 3 kV/mm × afstand vinger–loop.</li>
+    <li>De bol wordt voorgesteld als volledig opgeladen na het kussen en volledig ontladen aan de kam. De figuur is gestileerd.</li>`}
+  </ul>`;
+}
+
+// ================= start =================
+setMode('wim');
+updateWimGeometry(S.gap); rebuildWimLoop(S.gap); rebuildFricLoop();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

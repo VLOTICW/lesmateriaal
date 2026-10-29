@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thomsons e/m-experiment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap">
+<style>
+html,body{margin:0;background:#0F1418}
+[hidden]{display:none!important}
+#v2d a{color:#8BFFB8}
+#v2d a:hover{color:#C6FFDB}
+#v2d .svgwrap svg{display:block;width:100%;height:auto}
+#v2d .glass{fill:rgba(160,200,220,0.05);stroke:#7E97A6;stroke-width:2}
+#v2d .gasglow{fill:rgba(190,120,255,0.20);stroke:none}
+#v2d .screen{stroke:#8BFFB8;stroke-width:5;stroke-linecap:round;opacity:.55}
+#v2d .metal{fill:#B9C3CA;stroke:none}
+#v2d .plate{fill:#5AA9FF;stroke:none}
+#v2d .wire{fill:none;stroke:#8A949B;stroke-width:2;stroke-linejoin:round}
+#v2d .wire-hot{fill:none;stroke:#D6A84A;stroke-width:2;stroke-linejoin:round}
+#v2d .src{fill:#0F1418;stroke:#E9E6DF;stroke-width:2}
+#v2d .srcline{stroke:#E9E6DF;stroke-width:2}
+#v2d .dot{fill:#E9E6DF}
+#v2d .ball{fill:#D6A84A}
+#v2d .lbl{fill:#A3ACB3;font:500 13px 'IBM Plex Sans',sans-serif}
+#v2d .lbl-c{fill:#A3ACB3;font:500 13px 'IBM Plex Sans',sans-serif;text-anchor:middle}
+#v2d .lbl-e{fill:#A3ACB3;font:500 13px 'IBM Plex Sans',sans-serif;text-anchor:end}
+#v2d .val{fill:#E9E6DF;font:500 13px 'IBM Plex Mono',monospace;text-anchor:middle}
+#v2d .sym{fill:#E9E6DF;font:600 14px 'IBM Plex Sans',sans-serif;text-anchor:middle}
+#v2d .coilbody{fill:#2A2318;stroke:#D6A84A;stroke-width:2}
+#v2d .stripes{stroke:#D6A84A;stroke-width:1.5;opacity:.7}
+#v2d .coil{fill:none;stroke:#FFB070;stroke-width:3;opacity:.25}
+#v2d .coil.on{opacity:1}
+#v2d .bsym{fill:none;stroke:#FFB070;stroke-width:1.6}
+#v2d .earrow{stroke:#5AA9FF;stroke-width:2}
+#v2d .earrowhead{fill:#5AA9FF}
+#v2d .ticks{stroke:#7E97A6;stroke-width:1.2}
+#v2d .inset{fill:#0B1013;stroke:#7E97A6;stroke-width:2}
+#v2d .beam-glow{fill:none;stroke:#8BFFB8;stroke-width:6;opacity:.18;stroke-linecap:round;stroke-linejoin:round}
+#v2d .beam-core{fill:none;stroke:#8BFFB8;stroke-width:1.4;opacity:.55;stroke-linecap:round;stroke-linejoin:round}
+#v2d .beam-flow{fill:none;stroke:#E8FFF0;stroke-width:3;stroke-linecap:round;stroke-dasharray:2 13;animation:flow linear infinite}
+#v2d .faint{opacity:.35}
+#v2d .hide{display:none}
+#v2d .spot{fill:#8BFFB8}
+#v2d .spot-halo{fill:#8BFFB8;opacity:.3;filter:blur(5px)}
+#v2d .spark{fill:none;stroke:#E4F1FF;stroke-width:2.2;stroke-linejoin:round;animation:spark .18s steps(2) infinite}
+#v2d .spark2{fill:none;stroke:#9CC8FF;stroke-width:1.2;stroke-linejoin:round;animation:spark .23s steps(2) infinite reverse}
+#v2d .hamA{stroke:#E9E6DF;stroke-width:2;animation:ham .12s steps(1) infinite}
+#v2d .hamB{stroke:#E9E6DF;stroke-width:2;animation:ham .12s steps(1) infinite reverse}
+#v2d .blade{stroke:#E9E6DF;stroke-width:2.5;stroke-linecap:round}
+@keyframes flow{to{stroke-dashoffset:-30}}
+@keyframes spark{0%{opacity:1}50%{opacity:.15}100%{opacity:1}}
+@keyframes ham{0%{opacity:1}50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){#v2d .beam-flow,#v2d .spark,#v2d .spark2,#v2d .hamA,#v2d .hamB{animation:none}}
+#v2d .card{background:#171E23;border:1px solid #2A343B;border-radius:14px;padding:22px}
+#v2d .h3{margin:0 0 4px;font:600 13px 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#D6A84A}
+#v2d .ctl{display:flex;flex-direction:column;gap:6px}
+#v2d .ctl label{font:500 14px 'IBM Plex Sans',sans-serif;color:#E9E6DF;display:flex;justify-content:space-between;gap:12px}
+#v2d .ctl label span{font-family:'IBM Plex Mono',monospace;color:#8BFFB8}
+#v2d input[type=range]{width:100%;accent-color:#D6A84A;height:28px}
+#v2d .tog{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #3A464E;background:#11171B;color:#E9E6DF;font:500 14px 'IBM Plex Sans',sans-serif;cursor:pointer}
+#v2d .tog[aria-pressed=true]{background:#2B2414;border-color:#D6A84A;color:#F5D58E}
+#v2d .act{min-height:44px;padding:0 18px;border-radius:10px;border:1px solid #8BFFB8;background:#12251B;color:#C6FFDB;font:600 14px 'IBM Plex Sans',sans-serif;cursor:pointer}
+#v2d .act:disabled{border-color:#3A464E;background:#11171B;color:#7C868D;cursor:not-allowed}
+#v2d .ghost{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #3A464E;background:transparent;color:#A3ACB3;font:500 14px 'IBM Plex Sans',sans-serif;cursor:pointer}
+#v2d .f{font:400 17px 'IBM Plex Mono',monospace;color:#E9E6DF;line-height:1.9}
+#v2d .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.25}
+#v2d .frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+#v2d .frac>span:last-child{padding:0 4px}
+#v2d .num{color:#8BFFB8}
+#v2d .muted{color:#A3ACB3;font:400 14px 'IBM Plex Sans',sans-serif;line-height:1.5}
+#v2d .note{font:400 14px 'IBM Plex Sans',sans-serif;line-height:1.5;color:#E9E6DF;background:#1D252B;border-radius:10px;padding:10px 14px}
+#v2d .warn{font:500 14px 'IBM Plex Sans',sans-serif;line-height:1.5;color:#FFD08A;background:#2A2116;border-radius:10px;padding:10px 14px}
+#v2d .ok{font:500 14px 'IBM Plex Sans',sans-serif;line-height:1.5;color:#C6FFDB;background:#12251B;border-radius:10px;padding:10px 14px}
+#v2d .bar{height:14px;border-radius:7px}
+#v2d .tbl{width:100%;border-collapse:collapse;font:400 14px 'IBM Plex Sans',sans-serif;color:#E9E6DF}
+#v2d .tbl td{padding:7px 0;border-bottom:1px solid #2A343B}
+#v2d .tbl td:last-child{text-align:right;font-family:'IBM Plex Mono',monospace}
+#v3d a{color:#8BFFB8}
+#v3d a:hover{color:#C6FFDB}
+#v3d .stage svg{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+#v3d .grid{fill:none;stroke:#26323A;stroke-width:1}
+#v3d .tube{fill:none;stroke:#7E97A6;stroke-width:1.2;opacity:.55}
+#v3d .tube-strong{fill:none;stroke:#9FB4C1;stroke-width:1.8;opacity:.8}
+#v3d .screen{fill:rgba(139,255,184,0.08);stroke:#8BFFB8;stroke-width:2;opacity:.8}
+#v3d .metal{fill:#B9C3CA;stroke:#E9E6DF;stroke-width:.8}
+#v3d .plate{fill:rgba(90,169,255,0.35);stroke:#5AA9FF;stroke-width:1.5}
+#v3d .coil{fill:none;stroke:#FFB070;stroke-width:5;opacity:.22;stroke-linecap:round}
+#v3d .coil.on{opacity:.95}
+#v3d .efield{fill:none;stroke:#5AA9FF;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#v3d .bfield{fill:none;stroke:#FFB070;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 4}
+#v3d .fe{fill:none;stroke:#5AA9FF;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+#v3d .fb{fill:none;stroke:#FFB070;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+#v3d .vv{fill:none;stroke:#8BFFB8;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#v3d .edot{fill:#E8FFF0}
+#v3d .shadow{fill:none;stroke:#8BFFB8;stroke-width:2;opacity:.18;stroke-dasharray:4 5}
+#v3d .drop{fill:none;stroke:#8BFFB8;stroke-width:1;opacity:.25;stroke-dasharray:2 4}
+#v3d .beam-glow{fill:none;stroke:#8BFFB8;stroke-width:7;opacity:.18;stroke-linecap:round;stroke-linejoin:round}
+#v3d .beam-core{fill:none;stroke:#8BFFB8;stroke-width:1.6;opacity:.6;stroke-linecap:round;stroke-linejoin:round}
+#v3d .beam-flow{fill:none;stroke:#E8FFF0;stroke-width:3;stroke-linecap:round;stroke-dasharray:2 13;animation:flow linear infinite}
+#v3d .spot{fill:#8BFFB8}
+#v3d .spot-halo{fill:#8BFFB8;opacity:.35;filter:blur(5px)}
+#v3d .axx{stroke:#E9E6DF;stroke-width:2;fill:none}
+#v3d .lbl{fill:#A3ACB3;font:500 13px 'IBM Plex Sans',sans-serif}
+#v3d .lblw{fill:#E9E6DF;font:600 15px 'IBM Plex Sans',sans-serif}
+#v3d .lblE{fill:#7DBBFF;font:600 15px 'IBM Plex Sans',sans-serif}
+#v3d .lblB{fill:#FFB070;font:600 15px 'IBM Plex Sans',sans-serif}
+#v3d .lblV{fill:#8BFFB8;font:600 15px 'IBM Plex Sans',sans-serif}
+#v3d .hide{display:none}
+@keyframes flow{to{stroke-dashoffset:-30}}
+@media (prefers-reduced-motion: reduce){#v3d .beam-flow{animation:none}}
+#v3d .card{background:#171E23;border:1px solid #2A343B;border-radius:14px;padding:22px}
+#v3d .h3{margin:0 0 4px;font:600 13px 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#D6A84A}
+#v3d .ctl{display:flex;flex-direction:column;gap:6px}
+#v3d .ctl label{font:500 14px 'IBM Plex Sans',sans-serif;color:#E9E6DF;display:flex;justify-content:space-between;gap:12px}
+#v3d .ctl label span{font-family:'IBM Plex Mono',monospace;color:#8BFFB8}
+#v3d input[type=range]{width:100%;accent-color:#D6A84A;height:28px}
+#v3d .tog{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #3A464E;background:#11171B;color:#E9E6DF;font:500 14px 'IBM Plex Sans',sans-serif;cursor:pointer}
+#v3d .tog[aria-pressed=true]{background:#2B2414;border-color:#D6A84A;color:#F5D58E}
+#v3d .ghost{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid #3A464E;background:transparent;color:#E9E6DF;font:500 14px 'IBM Plex Sans',sans-serif;cursor:pointer}
+#v3d .f{font:400 17px 'IBM Plex Mono',monospace;color:#E9E6DF;line-height:1.9}
+#v3d .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.25}
+#v3d .frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+#v3d .frac>span:last-child{padding:0 4px}
+#v3d .num{color:#8BFFB8}
+#v3d .muted{color:#A3ACB3;font:400 14px 'IBM Plex Sans',sans-serif;line-height:1.5}
+#v3d .note{font:400 15px 'IBM Plex Sans',sans-serif;line-height:1.55;color:#E9E6DF;background:#1D252B;border-radius:10px;padding:12px 14px}
+#v3d .ok{font:500 14px 'IBM Plex Sans',sans-serif;line-height:1.5;color:#C6FFDB;background:#12251B;border-radius:10px;padding:10px 14px}
+#v3d .bar{height:14px;border-radius:7px}
+</style>
+</head>
+<body>
+<div id="v2d"></div>
+<div id="v3d" hidden></div>
+<template id="t2d">
+<div style="box-sizing: border-box; width: 100%; max-width: 1400px; margin: 0 auto; padding: 40px 24px 56px; display: flex; flex-direction: column; gap: 24px; font-family: 'IBM Plex Sans', sans-serif; color: #E9E6DF; background: #0F1418">
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 780px">
+<div style="font: 500 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #D6A84A">Cambridge, 1897 · J. J. Thomson</div>
+<h1 style="margin: 0; font: 600 44px/1.1 Spectral, serif; color: #F3F0E8">De lading-massaverhouding van kathodestralen</h1>
+<p style="margin: 0; font: 400 16px/1.55 'IBM Plex Sans', sans-serif; color: #A3ACB3">Stel de inductieklos, de afbuigplaten en de spoelen in. Breng de straal eerst recht (stap 1: snelheid), zet dan de spoelen uit en meet de afbuiging (stap 2: e/m).</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<a href="#3d" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #8BFFB8; background: #12251B; color: #C6FFDB; font: 600 14px 'IBM Plex Sans', sans-serif; text-decoration: none">Bekijk de buis in 3D →</a>
+<button class="ghost" onClick="{{reset}}">Alles terugzetten</button>
+</div>
+</header>
+
+<div class="card svgwrap" style="padding: 12px 12px 8px">
+<svg viewBox="0 0 1260 620" role="img" aria-label="Kathodestraalbuis met Ruhmkorff-inductieklos, afbuigplaten, spoelen en scherm">
+<path class="wire-hot" d="M200 200 L130 200 L130 430 M289 234 L289 300 L330 300 L330 430 M130 385 L{{gapXL1}} 385 M{{gapXR1}} 385 L330 385"></path>
+<circle class="dot" cx="130" cy="385" r="3.5"></circle>
+<circle class="dot" cx="330" cy="385" r="3.5"></circle>
+<circle class="ball" cx="{{gapXL}}" cy="385" r="9"></circle>
+<circle class="ball" cx="{{gapXR}}" cy="385" r="9"></circle>
+<polyline class="spark {{sparkCls}}" points="{{sparkPts}}"></polyline>
+<polyline class="spark2 {{sparkCls}}" points="{{sparkPts2}}"></polyline>
+<text class="lbl-c" x="230" y="366">vonkenbrug s = {{gapTxt}} mm</text>
+<text class="val" x="230" y="414">Va ≈ {{vaTxt}}</text>
+<rect class="coilbody" x="100" y="430" width="260" height="70" rx="10"></rect>
+<path class="stripes" d="{{stripes}}"></path>
+<circle class="dot" cx="130" cy="430" r="4"></circle>
+<circle class="dot" cx="330" cy="430" r="4"></circle>
+<text class="sym" x="118" y="452">−</text>
+<text class="sym" x="344" y="452">+</text>
+<path class="wire" d="M160 500 L160 560 L76 560 M44 560 L30 560 L30 590 L150 590 M186 590 L300 590 L300 500"></path>
+<circle class="src" cx="60" cy="560" r="16"></circle>
+<line class="srcline" x1="44" y1="560" x2="76" y2="560"></line>
+<line class="hamA" x1="150" y1="590" x2="186" y2="590"></line>
+<line class="hamB" x1="150" y1="590" x2="182" y2="576"></line>
+<circle class="dot" cx="150" cy="590" r="3"></circle>
+<circle class="dot" cx="186" cy="590" r="3"></circle>
+<text class="lbl-c" x="230" y="526">Ruhmkorff-inductieklos</text>
+<text class="lbl" x="84" y="548">primair</text>
+<text class="lbl" x="196" y="612">onderbreker (Wagnerhamer)</text>
+
+<path class="wire" d="M455 222 L455 454 M455 486 L455 575 L610 575 L610 420 M610 380 L610 110 L525 110 L525 178"></path>
+<circle class="src" cx="455" cy="470" r="16"></circle>
+<line class="srcline" x1="455" y1="454" x2="455" y2="486"></line>
+<text class="sym" x="474" y="458">−</text>
+<text class="sym" x="474" y="496">+</text>
+<text class="lbl-e" x="434" y="466">accucellen</text>
+<text class="val" x="395" y="486">Vp = {{vpTxt}} V</text>
+<line class="blade" x1="610" y1="420" x2="{{swEx}}" y2="{{swEy}}"></line>
+<circle class="dot" cx="610" cy="420" r="3.5"></circle>
+<circle class="dot" cx="610" cy="380" r="3.5"></circle>
+<text class="lbl" x="624" y="404">S<tspan dy="4" font-size="10">E</tspan></text>
+
+<path class="wire" d="M482 264 L482 530 L640 530 M680 530 L784 530 M816 530 L864 530 M896 530 L940 530 L940 550 L498 550 L498 264"></path>
+<line class="blade" x1="640" y1="530" x2="{{swBx}}" y2="{{swBy}}"></line>
+<circle class="dot" cx="640" cy="530" r="3.5"></circle>
+<circle class="dot" cx="680" cy="530" r="3.5"></circle>
+<text class="lbl" x="652" y="518">S<tspan dy="4" font-size="10">B</tspan></text>
+<circle class="src" cx="800" cy="530" r="16"></circle>
+<line class="srcline" x1="784" y1="530" x2="816" y2="530"></line>
+<circle class="src" cx="880" cy="530" r="16"></circle>
+<text class="sym" x="880" y="535">A</text>
+<text class="lbl-c" x="800" y="502">spoelbron</text>
+<text class="val" x="880" y="578">I = {{iTxt}} A</text>
+
+<path class="gasglow {{gasCls}}" d="M180 166 L600 166 L1040 56 L1040 344 L600 234 L180 234 A34 34 0 0 1 180 166 Z"></path>
+<path class="glass" d="M180 166 L600 166 L1040 56 L1040 344 L600 234 L180 234 A34 34 0 0 1 180 166 Z"></path>
+<line class="screen" x1="1040" y1="58" x2="1040" y2="342"></line>
+<rect class="metal" x="196" y="178" width="8" height="44" rx="3"></rect>
+<rect class="metal" x="286" y="168" width="6" height="28"></rect>
+<rect class="metal" x="286" y="204" width="6" height="28"></rect>
+<rect class="metal" x="336" y="168" width="6" height="29"></rect>
+<rect class="metal" x="336" y="203" width="6" height="29"></rect>
+<rect class="plate" x="440" y="176" width="100" height="5" rx="1"></rect>
+<rect class="plate" x="440" y="219" width="100" height="5" rx="1"></rect>
+<text class="sym" x="432" y="184">+</text>
+<text class="sym" x="432" y="227">−</text>
+<g class="{{eArrowCls}}">
+<line class="earrow" x1="465" y1="185" x2="465" y2="208"></line>
+<line class="earrow" x1="490" y1="185" x2="490" y2="208"></line>
+<line class="earrow" x1="515" y1="185" x2="515" y2="208"></line>
+<polygon class="earrowhead" points="460,207 470,207 465,215"></polygon>
+<polygon class="earrowhead" points="485,207 495,207 490,215"></polygon>
+<polygon class="earrowhead" points="510,207 520,207 515,215"></polygon>
+</g>
+<circle class="coil {{coilCls}}" cx="490" cy="200" r="64"></circle>
+<g class="{{bSymCls}}">
+<circle class="bsym" cx="470" cy="150" r="6"></circle>
+<path class="bsym" d="M466 146 L474 154 M474 146 L466 154"></path>
+<circle class="bsym" cx="510" cy="150" r="6"></circle>
+<path class="bsym" d="M506 146 L514 154 M514 146 L506 154"></path>
+<circle class="bsym" cx="470" cy="250" r="6"></circle>
+<path class="bsym" d="M466 246 L474 254 M474 246 L466 254"></path>
+<circle class="bsym" cx="510" cy="250" r="6"></circle>
+<path class="bsym" d="M506 246 L514 254 M514 246 L506 254"></path>
+</g>
+
+<g class="{{beamCls}}">
+<path class="beam-glow" d="{{beamPath}}"></path>
+<path class="beam-core" d="{{beamPath}}"></path>
+<path class="beam-flow" d="{{beamPath}}" style="animation-duration: {{flowDur}}"></path>
+<circle class="spot-halo" cx="{{endX}}" cy="{{endY}}" r="11"></circle>
+<circle class="spot" cx="{{endX}}" cy="{{endY}}" r="3.5"></circle>
+</g>
+
+<text class="lbl-c" x="200" y="156">K (−)</text>
+<text class="lbl-c" x="314" y="156">A (+) en spleten</text>
+<text class="lbl" x="560" y="96">afbuigplaten (L = 5 cm, d = 1,5 cm)</text>
+<text class="lbl-e" x="420" y="128">spoelen (B ⊗)</text>
+<text class="lbl-c" x="1040" y="372">fosforescerend glas</text>
+<text class="lbl-c" x="1040" y="390">D = 25 cm na de platen</text>
+<text class="lbl" x="700" y="320">{{tubeMsg}}</text>
+
+<text class="lbl-c" x="1166" y="100">vooraanzicht scherm</text>
+<circle class="inset" cx="1166" cy="200" r="86"></circle>
+<path class="ticks" d="{{insetTicks}}"></path>
+<text class="lbl" x="1196" y="138">+5 cm</text>
+<text class="lbl" x="1196" y="270">−5 cm</text>
+<circle class="spot-halo {{insetCls}}" cx="1166" cy="{{insetY}}" r="10"></circle>
+<circle class="spot {{insetCls}}" cx="1166" cy="{{insetY}}" r="4.5"></circle>
+<text class="val" x="1166" y="314">Y = {{yScreenTxt}}</text>
+<text class="lbl-c" x="1166" y="334">schematisch, niet op schaal</text>
+</svg>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div class="card" style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="h3">Ruhmkorff-klos en buis</h2>
+<button class="tog" aria-pressed="{{powerP}}" onClick="{{togglePower}}">Inductieklos {{powerTxt}}</button>
+<div class="ctl">
+<label for="gap">Afstand vonkenbrug s <span>{{gapTxt}} mm</span></label>
+<input id="gap" type="range" min="0.5" max="5" step="0.1" value="{{gap}}" onChange="{{setGap}}">
+</div>
+<p class="muted" style="margin: 0">De vonk springt over zodra Va ≈ 3 kV/mm · s. Zo begrenst en meet de vonkenbrug de versnelspanning: Va ≈ <span class="num">{{vaTxt}}</span>.</p>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font: 500 14px 'IBM Plex Sans', sans-serif">Restgas in de buis</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button class="tog" aria-pressed="{{badP}}" onClick="{{setBad}}">Matig vacuüm (Hertz, 1883)</button>
+<button class="tog" aria-pressed="{{goodP}}" onClick="{{setGood}}">Hoog vacuüm (Thomson, 1897)</button>
+</div>
+</div>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="h3">Elektrisch veld: afbuigplaten</h2>
+<button class="tog" aria-pressed="{{eP}}" onClick="{{toggleE}}">Schakelaar S<sub>E</sub> {{eTxt}}</button>
+<div class="ctl">
+<label for="cells">Aantal accucellen n (2 V per cel) <span>{{cells}} → {{vpTxt}} V</span></label>
+<input id="cells" type="range" min="0" max="200" step="1" value="{{cells}}" onChange="{{setCells}}">
+</div>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="h3">Magnetisch veld: spoelen</h2>
+<button class="tog" aria-pressed="{{bP}}" onClick="{{toggleB}}">Schakelaar S<sub>B</sub> {{bTxt}}</button>
+<div class="ctl">
+<label for="cur">Spoelstroom I <span>{{iTxt}} A</span></label>
+<input id="cur" type="range" min="0" max="1" step="0.005" value="{{I}}" onChange="{{setI}}">
+</div>
+<p class="muted" style="margin: 0">N = 100 windingen, R = 5 cm. B staat loodrecht op het blad (⊗) en duwt de straal omlaag.</p>
+</div>
+</div>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div class="card" style="display: flex; flex-direction: column; gap: 10px">
+<h2 class="h3">De velden die Thomson kon meten</h2>
+<div class="f">E = <span class="frac"><span>V<sub>p</sub></span><span>d</span></span> = <span class="frac"><span>{{vpTxt}} V</span><span>0,015 m</span></span> = <span class="num">{{eTxtVal}}</span></div>
+<div class="f">B = μ<sub>0</sub> · <span class="frac"><span>N · I</span><span>2R</span></span> = <span class="num">{{bTxtVal}}</span></div>
+<sc-if value="{{screened}}" hint-placeholder-val="{{ false }}">
+<div class="warn">Matig vacuüm: de straal ioniseert het restgas. Die geleidende gaslaag schermt de platen af, dus E in de straal ≈ 0. Zo vond Hertz geen elektrische afbuiging. Het magnetische veld werkt wel.</div>
+</sc-if>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="h3">Stap 1 · Snelheid uit gekruiste velden</h2>
+<div style="display: grid; grid-template-columns: 90px minmax(0, 1fr) 150px; gap: 10px 14px; align-items: center">
+<div class="f" style="line-height: 1.2; color: #5AA9FF">e·E</div>
+<div style="background: #11171B; border-radius: 7px"><div class="bar" style="background: #5AA9FF; width: {{feW}}"></div></div>
+<div class="f" style="line-height: 1.2; font-size: 14px; text-align: right">omhoog</div>
+<div class="f" style="line-height: 1.2; color: #FFB070">e·v·B</div>
+<div style="background: #11171B; border-radius: 7px"><div class="bar" style="background: #FFB070; width: {{fbW}}"></div></div>
+<div class="f" style="line-height: 1.2; font-size: 14px; text-align: right">omlaag</div>
+</div>
+<div class="f">e·E = e·v·B  ⇒  v = <span class="frac"><span>E</span><span>B</span></span> = <span class="num">{{vRatioTxt}}</span></div>
+<sc-if value="{{balanced}}" hint-placeholder-val="{{ false }}">
+<div class="ok">De straal loopt rechtdoor: beide krachten heffen elkaar op. Noteer nu E en B.</div>
+</sc-if>
+<sc-if value="{{notBalanced}}" hint-placeholder-val="{{ true }}">
+<div class="note">Zet beide schakelaars aan en regel I (of n) tot de vlek op 0 staat. Pas dan geldt v = E/B.</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<button class="act" disabled="{{cannotNote1}}" onClick="{{note1}}">Noteer stap 1</button>
+<span class="muted">{{s1Txt}}</span>
+</div>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="h3">Stap 2 · Afbuiging door E alleen</h2>
+<div class="f">y = <span class="frac"><span>1</span><span>2</span></span>·<span class="frac"><span>e·E</span><span>m</span></span>·<span class="frac"><span>L²</span><span>v²</span></span>  met  v = <span class="frac"><span>E</span><span>B</span></span>  ⇒  <span class="frac"><span>e</span><span>m</span></span> = <span class="frac"><span>2·y·E</span><span>B²·L²</span></span></div>
+<p class="muted" style="margin: 0">y is de afbuiging aan het einde van de platen. Op het scherm meet je Y. Na de platen loopt de straal rechtdoor, alsof hij uit het midden van de platen komt: y = Y · <span class="frac"><span>L/2</span><span>L/2 + D</span></span>.</p>
+<sc-if value="{{s2Hint}}" hint-placeholder-val="{{ true }}">
+<div class="note">{{s2HintTxt}}</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<button class="act" disabled="{{cannotNote2}}" onClick="{{note2}}">Meet afbuiging</button>
+</div>
+<sc-if value="{{hasS2}}" hint-placeholder-val="{{ false }}">
+<div class="f">Y = <span class="num">{{s2Y}}</span>  →  y = <span class="num">{{s2y}}</span></div>
+<div class="f"><span class="frac"><span>e</span><span>m</span></span> = <span class="frac"><span>2 · {{s2y}} · {{s1E}}</span><span>({{s1B}})² · (0,05 m)²</span></span> = <span class="num" style="font-size: 20px">{{s2em}}</span></div>
+</sc-if>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 10px">
+<h2 class="h3">Vergelijking</h2>
+<table class="tbl">
+<tbody>
+<tr><td>Jouw meting</td><td class="num">{{s2emShort}}</td></tr>
+<tr><td>Thomson 1897 (m/e ≈ 1,1 à 1,5 · 10⁻⁷ emu)</td><td>≈ 0,7 à 0,9 · 10¹¹ C/kg</td></tr>
+<tr><td>Hedendaagse waarde</td><td>1,76 · 10¹¹ C/kg</td></tr>
+<tr><td>Waterstofion H⁺</td><td>9,6 · 10⁷ C/kg</td></tr>
+<tr><td>Verhouding jouw meting / H⁺</td><td class="num">{{ratioH}}</td></tr>
+</tbody>
+</table>
+<p class="muted" style="margin: 0">Model, geen volledige werkelijkheid: niet-relativistisch, homogene velden enkel tussen de platen (in werkelijkheid reikten Thomsons velden verder, wat zijn waarde te laag maakte), kleine afbuighoeken, en de simulatie rekent met de hedendaagse e/m.</p>
+</div>
+</div>
+</div>
+</div>
+</template>
+<template id="t3d">
+<div style="box-sizing: border-box; width: 100%; max-width: 1400px; margin: 0 auto; padding: 40px 24px 56px; display: flex; flex-direction: column; gap: 24px; font-family: 'IBM Plex Sans', sans-serif; color: #E9E6DF; background: #0F1418">
+<header style="display: flex; flex-direction: column; gap: 6px; max-width: 820px">
+<a href="#2d" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #3A464E; color: #E9E6DF; font: 500 14px 'IBM Plex Sans', sans-serif; text-decoration: none">← Terug naar de 2D-simulatie</a>
+<div style="font: 500 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #D6A84A">Thomsons buis · ruimtelijk bekeken</div>
+<h1 style="margin: 0; font: 600 44px/1.1 Spectral, serif; color: #F3F0E8">Waar wijzen E, B en de krachten?</h1>
+<p style="margin: 0; font: 400 16px/1.55 'IBM Plex Sans', sans-serif; color: #A3ACB3">Sleep in de tekening om de buis te draaien. Het elektrische veld staat verticaal, het magnetische veld horizontaal en dwars op de straal. Toch buigen beide de straal in hetzelfde verticale vlak.</p>
+</header>
+
+<div class="card stage" style="padding: 8px">
+<svg viewBox="0 0 1200 680" role="img" aria-label="Driedimensionale kathodestraalbuis met afbuigplaten, Helmholtz-spoelen, velden en krachten" onPointerDown="{{down}}" onPointerMove="{{move}}" onPointerUp="{{up}}" onPointerLeave="{{up}}">
+<path class="grid" d="{{gridD}}"></path>
+<path class="shadow {{beamCls}}" d="{{shadowD}}"></path>
+<path class="coil {{coilOn}}" d="{{coilFarD}}"></path>
+<path class="bfield {{bCls}}" d="{{bFarD}}"></path>
+<path class="tube" d="{{tubeD}}"></path>
+<path class="metal" d="{{cathodeD}}"></path>
+<path class="metal" d="{{anodeD}}"></path>
+<path class="plate" d="{{plateBotD}}"></path>
+<path class="efield {{eCls}}" d="{{eFieldD}}"></path>
+<g class="{{beamCls}}">
+<path class="beam-glow" d="{{beamD}}"></path>
+<path class="beam-core" d="{{beamD}}"></path>
+<path class="beam-flow" d="{{beamD}}" style="animation-duration: {{flowDur}}"></path>
+<path class="drop" d="{{dropD}}"></path>
+<circle class="spot-halo" cx="{{endX}}" cy="{{endY}}" r="12"></circle>
+<circle class="spot" cx="{{endX}}" cy="{{endY}}" r="4"></circle>
+</g>
+<path class="plate" d="{{plateTopD}}"></path>
+<path class="screen" d="{{screenD}}"></path>
+<path class="tube-strong" d="{{tubeEdgeD}}"></path>
+<g class="{{forceCls}}">
+<path class="vv" d="{{vArrowD}}"></path>
+<path class="fe {{feCls}}" d="{{feArrowD}}"></path>
+<path class="fb {{fbCls}}" d="{{fbArrowD}}"></path>
+<circle class="edot" cx="{{eDotX}}" cy="{{eDotY}}" r="4.5"></circle>
+<text class="lblV" x="{{vLx}}" y="{{vLy}}">v</text>
+<text class="lblE {{feCls}}" x="{{feLx}}" y="{{feLy}}">F = e·E</text>
+<text class="lblB {{fbCls}}" x="{{fbLx}}" y="{{fbLy}}">F = e·v·B</text>
+</g>
+<path class="bfield {{bCls}}" d="{{bNearD}}"></path>
+<path class="coil {{coilOn}}" d="{{coilNearD}}"></path>
+<text class="lblB {{bCls}}" x="{{bLx}}" y="{{bLy}}">B</text>
+<text class="lblE {{eCls}}" x="{{eLx}}" y="{{eLy}}">E</text>
+<text class="lbl" x="{{kLx}}" y="{{kLy}}">kathode (−)</text>
+<text class="lbl" x="{{aLx}}" y="{{aLy}}">anode (+)</text>
+<text class="lbl" x="{{sLx}}" y="{{sLy}}">scherm</text>
+<text class="lbl" x="{{cLx}}" y="{{cLy}}">Helmholtz-spoelen</text>
+<path class="axx" d="{{triadD}}"></path>
+<text class="lblw" x="{{txX}}" y="{{txY}}">x</text>
+<text class="lblw" x="{{tyX}}" y="{{tyY}}">y</text>
+<text class="lblw" x="{{tzX}}" y="{{tzY}}">z</text>
+<text class="lbl" x="1180" y="664" style="text-anchor: end">schematisch · afbuiging op ware grootte</text>
+</svg>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div class="card" style="display: flex; flex-direction: column; gap: 14px">
+<h2 class="h3">Zicht</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button class="ghost" onClick="{{viewSide}}">Zijaanzicht</button>
+<button class="ghost" onClick="{{viewTop}}">Bovenaanzicht</button>
+<button class="ghost" onClick="{{viewBack}}">Vanaf het scherm</button>
+<button class="ghost" onClick="{{viewIso}}">Schuin</button>
+</div>
+<div class="ctl">
+<label for="yaw">Draaien rond de verticale as <span>{{yawTxt}}°</span></label>
+<input id="yaw" type="range" min="-180" max="180" step="1" value="{{yaw}}" onChange="{{setYaw}}">
+</div>
+<div class="ctl">
+<label for="pitch">Kantelen <span>{{pitchTxt}}°</span></label>
+<input id="pitch" type="range" min="-89" max="89" step="1" value="{{pitch}}" onChange="{{setPitch}}">
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button class="tog" aria-pressed="{{fieldsP}}" onClick="{{toggleFields}}">Veldlijnen</button>
+<button class="tog" aria-pressed="{{forcesP}}" onClick="{{toggleForces}}">Krachten op een elektron</button>
+</div>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 14px">
+<h2 class="h3">Instellingen</h2>
+<div class="ctl">
+<label for="gap3">Vonkenbrug s <span>{{gapTxt}} mm → Va ≈ {{vaTxt}}</span></label>
+<input id="gap3" type="range" min="0.5" max="5" step="0.1" value="{{gap}}" onChange="{{setGap}}">
+</div>
+<button class="tog" aria-pressed="{{eP}}" onClick="{{toggleE}}">Schakelaar S<sub>E</sub> {{eTxt}}</button>
+<div class="ctl">
+<label for="cells3">Accucellen n (2 V per cel) <span>{{cells}} → {{vpTxt}} V</span></label>
+<input id="cells3" type="range" min="0" max="200" step="1" value="{{cells}}" onChange="{{setCells}}">
+</div>
+<button class="tog" aria-pressed="{{bP}}" onClick="{{toggleB}}">Schakelaar S<sub>B</sub> {{bTxt}}</button>
+<div class="ctl">
+<label for="cur3">Spoelstroom I <span>{{iTxt}} A</span></label>
+<input id="cur3" type="range" min="0" max="0.6" step="0.002" value="{{I}}" onChange="{{setI}}">
+</div>
+</div>
+</div>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div class="card" style="display: flex; flex-direction: column; gap: 10px">
+<h2 class="h3">Richtingen</h2>
+<div class="f"><span style="color: #8BFFB8">v</span> langs +x  ·  <span style="color: #7DBBFF">E</span> langs −y (van + naar −)  ·  <span style="color: #FFB070">B</span> langs −z</div>
+<div class="note">Het magnetische veld wijst opzij, dwars door de buis van spoel naar spoel. De magnetische kracht staat loodrecht op v én op B: F = q·(v × B). Daardoor wijst ze verticaal, net als de elektrische kracht. Voor het elektron is q = −e: de kracht is tegengesteld aan v × B.</div>
+<div class="note">Bekijk de buis van bovenaf: de straal lijkt dan niet af te buigen. Alle afbuiging gebeurt in het verticale vlak.</div>
+</div>
+
+<div class="card" style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="h3">Velden en krachten</h2>
+<div class="f">E = <span class="frac"><span>V<sub>p</sub></span><span>d</span></span> = <span class="num">{{eVal}}</span></div>
+<div class="f">B = <span style="white-space: nowrap">(4/5)<sup>3/2</sup></span> · μ<sub>0</sub> · <span class="frac"><span>N · I</span><span>R</span></span> = <span class="num">{{bVal}}</span></div>
+<p class="muted" style="margin: 0">Helmholtz-paar: twee spoelen met N = 100, R = 5 cm, op afstand R van elkaar. Daartussen is B nagenoeg homogeen.</p>
+<div style="display: grid; grid-template-columns: 90px minmax(0, 1fr) 90px; gap: 10px 14px; align-items: center">
+<div class="f" style="line-height: 1.2; color: #7DBBFF">e·E</div>
+<div style="background: #11171B; border-radius: 7px"><div class="bar" style="background: #5AA9FF; width: {{feW}}"></div></div>
+<div class="f" style="line-height: 1.2; font-size: 14px; text-align: right">omhoog</div>
+<div class="f" style="line-height: 1.2; color: #FFB070">e·v·B</div>
+<div style="background: #11171B; border-radius: 7px"><div class="bar" style="background: #FFB070; width: {{fbW}}"></div></div>
+<div class="f" style="line-height: 1.2; font-size: 14px; text-align: right">omlaag</div>
+</div>
+<div class="f">v = <span class="num">{{vTxt}}</span>   Y op het scherm = <span class="num">{{yTxt}}</span></div>
+<sc-if value="{{balanced}}" hint-placeholder-val="{{ false }}">
+<div class="ok">Rechtdoor: e·E = e·v·B, dus v = E/B.</div>
+</sc-if>
+<p class="muted" style="margin: 0">Model: niet-relativistisch, homogene velden enkel tussen de platen, de bocht door B benaderd als parabool. De simulatie rekent met de hedendaagse e/m.</p>
+</div>
+</div>
+</div>
+</div>
+</template>
+<script>
+
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {}; }
+  setState(u) { Object.assign(this.state, u); if (this._update) this._update(); }
+}
+const EVENTS = { onclick: 'click', onchange: 'input', onpointerdown: 'pointerdown', onpointermove: 'pointermove',
+  onpointerup: 'pointerup', onpointerleave: 'pointerleave' };
+const KEY = /\{\{\s*([A-Za-z_$][\w$]*)\s*\}\}/g;
+const fill = (s, v) => s.replace(KEY, (_, k) => (v[k] === undefined || v[k] === null) ? '' : String(v[k]));
+const one = (s) => { const m = s.trim().match(/^\{\{\s*([A-Za-z_$][\w$]*)\s*\}\}$/); return m && m[1]; };
+
+function mount(root, tpl, Comp) {
+  const frag = tpl.content.cloneNode(true);
+  const comp = new Comp({});
+  let vals = {};
+  const binds = [];
+  const walker = document.createTreeWalker(frag, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) {
+    if (n.nodeType === 3) {
+      if (n.data.includes('{{')) { const t = n.data; binds.push(() => { const s = fill(t, vals); if (n.data !== s) n.data = s; }); }
+      continue;
+    }
+    if (n.localName === 'sc-if') {
+      const k = one(n.getAttribute('value') || '');
+      n.removeAttribute('value'); n.removeAttribute('hint-placeholder-val');
+      binds.push(() => { n.style.display = vals[k] ? 'contents' : 'none'; });
+      continue;
+    }
+    for (const a of Array.from(n.attributes)) {
+      const name = a.name.toLowerCase(), v = a.value;
+      if (!v.includes('{{')) continue;
+      const k = one(v);
+      if (EVENTS[name] && k) {
+        n.removeAttribute(a.name);
+        n.addEventListener(EVENTS[name], (e) => { const f = vals[k]; if (typeof f === 'function') f(e); });
+      } else if (name === 'disabled' && k) {
+        n.removeAttribute(a.name);
+        binds.push(() => { n.disabled = !!vals[k]; });
+      } else if (name === 'value' && k && 'value' in n) {
+        n.removeAttribute(a.name);
+        binds.push(() => { const s = String(vals[k]); if (n.value !== s) n.value = s; });
+      } else {
+        const t = v;
+        binds.push(() => { const s = fill(t, vals); if (n.getAttribute(a.name) !== s) n.setAttribute(a.name, s); });
+      }
+    }
+  }
+  comp._update = () => { vals = comp.renderVals(); for (const b of binds) b(); };
+  comp._update();
+  root.appendChild(frag);
+}
+
+const C2D = (() => { 
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = this.initial();
+  }
+  initial() {
+    return { power: true, gap: 0.8, good: true, eOn: true, cells: 110, bOn: false, I: 0.4, s1: null, s2: null };
+  }
+  dec(x, n) { return x.toFixed(n).replace('.', ','); }
+  sci(x, n, unit) {
+    if (!x || !isFinite(x)) return '0' + (unit ? ' ' + unit : '');
+    const sup = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    let e = Math.floor(Math.log10(Math.abs(x)));
+    let m = x / Math.pow(10, e);
+    if (Math.abs(m) >= 9.995) { m = m / 10; e += 1; }
+    const es = String(e).split('').map(c => sup[c]).join('');
+    return m.toFixed(n).replace('.', ',') + ' · 10' + es + (unit ? ' ' + unit : '');
+  }
+  renderVals() {
+    const s = this.state;
+    const EM = 1.759e11, MU0 = 4e-7 * Math.PI, N = 100, R = 0.05, d = 0.015, L = 0.05, D = 0.25;
+    const X0 = 440, PXM = 2000, Y0 = 200, PYM = 2400;
+    const Va = s.gap * 3000;
+    const v = Math.sqrt(2 * EM * Va);
+    const Vp = s.cells * 2;
+    const Enom = Vp / d;
+    const E = s.eOn && s.good ? Enom : 0;
+    const B = s.bOn ? MU0 * N * s.I / (2 * R) : 0;
+    const a = EM * (E - v * B);
+    const toY = (y) => Y0 - y * PYM;
+    const pts = [[204, 200], [X0, 200]];
+    let end = 'screen';
+    let Y = 0;
+    const yL = 0.5 * a * Math.pow(L / v, 2);
+    if (Math.abs(yL) > d / 2 - 0.0006) {
+      end = 'plate';
+      const uEnd = v * Math.sqrt((d - 0.0012) / Math.abs(a));
+      for (let i = 1; i <= 20; i++) { const u = uEnd * i / 20; pts.push([X0 + u * PXM, toY(0.5 * a * Math.pow(u / v, 2))]); }
+    } else {
+      for (let i = 1; i <= 20; i++) { const u = L * i / 20; pts.push([X0 + u * PXM, toY(0.5 * a * Math.pow(u / v, 2))]); }
+      const th = a * L / (v * v);
+      let endX = 1040;
+      for (let xp = 542; xp <= 1040; xp += 2) {
+        const yp = yL + th * (xp - 540) / PXM;
+        const h = xp < 600 ? 34 : 34 + (xp - 600) * 110 / 440;
+        if (Math.abs(yp * PYM) > h - 1) { end = 'wall'; endX = xp; break; }
+      }
+      Y = yL + th * (endX - 540) / PXM;
+      pts.push([endX, toY(Y)]);
+    }
+    const last = pts[pts.length - 1];
+    const beamPath = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+
+    const gapPx = s.gap * 10;
+    const gxl = 230 - gapPx / 2 - 9, gxr = 230 + gapPx / 2 + 9;
+    const sx1 = gxl + 8, sx2 = gxr - 8;
+    const sp = [], sp2 = [];
+    for (let i = 0; i <= 6; i++) {
+      const x = sx1 + (sx2 - sx1) * i / 6;
+      sp.push(x.toFixed(1) + ',' + (385 + (i % 2 ? -5 : 4) * (i === 0 || i === 6 ? 0 : 1)));
+      sp2.push(x.toFixed(1) + ',' + (385 + (i % 2 ? 4 : -4) * (i === 0 || i === 6 ? 0 : 1)));
+    }
+    let stripes = '';
+    for (let x = 112; x <= 348; x += 8) stripes += 'M' + x + ' 434 L' + (x + 4) + ' 496 ';
+    let ticks = 'M1086 200 L1246 200 M1166 120 L1166 280 ';
+    for (let c = -6; c <= 6; c++) { const yy = 200 - c * 13.2; const w = c % 5 === 0 ? 10 : 5; ticks += 'M' + (1166 - w) + ' ' + yy.toFixed(1) + ' L' + (1166 + w) + ' ' + yy.toFixed(1) + ' '; }
+
+    const balanced = s.power && E > 0 && B > 0 && Math.abs(1 - v * B / E) < 0.015;
+    const fe = E, fb = v * B, fmax = Math.max(fe, fb, 1);
+    const onScreen = s.power && end === 'screen';
+    let tubeMsg = '';
+    if (!s.power) tubeMsg = 'inductieklos uit: geen straal';
+    else if (end === 'plate') tubeMsg = 'de straal botst op een afbuigplaat';
+    else if (end === 'wall') tubeMsg = 'de straal raakt de glaswand naast het scherm';
+    else if (balanced) tubeMsg = 'straal rechtdoor: e·E = e·v·B';
+
+    const s1 = s.s1;
+    let s2HintTxt = '';
+    if (!s1) s2HintTxt = 'Doe eerst stap 1.';
+    else if (s.bOn) s2HintTxt = 'Open schakelaar SB: alleen het elektrische veld mag nu werken.';
+    else if (s.cells !== s1.cells || s.gap !== s1.gap || !s.good || !s.eOn) s2HintTxt = 'Houd dezelfde Vp, dezelfde vonkenbrug en hoog vacuüm als in stap 1.';
+    else if (!onScreen) s2HintTxt = 'De vlek moet op het scherm vallen.';
+    const canNote2 = !!s1 && s2HintTxt === '' && s.power;
+
+    const self = this;
+    const s2 = s.s2;
+    return {
+      gap: s.gap, cells: s.cells, I: s.I,
+      gapTxt: this.dec(s.gap, 1),
+      vaTxt: this.dec(Va / 1000, 1) + ' kV',
+      vpTxt: String(Vp),
+      iTxt: this.dec(s.I, 3),
+      gapXL: gxl.toFixed(1), gapXR: gxr.toFixed(1), gapXL1: (gxl - 9).toFixed(1), gapXR1: (gxr + 9).toFixed(1),
+      sparkPts: sp.join(' '), sparkPts2: sp2.join(' '),
+      sparkCls: s.power ? '' : 'hide',
+      stripes: stripes, insetTicks: ticks,
+      swEx: s.eOn ? '610' : '632', swEy: s.eOn ? '380' : '386',
+      swBx: s.bOn ? '680' : '674', swBy: s.bOn ? '530' : '510',
+      gasCls: s.good ? 'hide' : '',
+      eArrowCls: s.eOn && Vp > 0 ? (s.good ? '' : 'faint') : 'hide',
+      coilCls: s.bOn && s.I > 0 ? 'on' : '',
+      bSymCls: s.bOn && s.I > 0 ? '' : 'hide',
+      beamCls: s.power ? (s.good ? '' : 'faint') : 'hide',
+      beamPath: beamPath,
+      flowDur: (0.55 * 2.9e7 / v).toFixed(2) + 's',
+      endX: last[0].toFixed(1), endY: last[1].toFixed(1),
+      tubeMsg: tubeMsg,
+      insetCls: onScreen ? '' : 'hide',
+      insetY: (200 - Y * 100 * 13.2).toFixed(1),
+      yScreenTxt: onScreen ? (Y >= 0 ? '+' : '−') + this.dec(Math.abs(Y) * 1000, 1) + ' mm' : '—',
+      powerP: s.power ? 'true' : 'false', powerTxt: s.power ? 'aan' : 'uit',
+      goodP: s.good ? 'true' : 'false', badP: s.good ? 'false' : 'true',
+      eP: s.eOn ? 'true' : 'false', eTxt: s.eOn ? 'gesloten' : 'open',
+      bP: s.bOn ? 'true' : 'false', bTxt: s.bOn ? 'gesloten' : 'open',
+      eTxtVal: s.eOn ? this.sci(Enom, 2, 'V/m') : '0 V/m (SE open)',
+      bTxtVal: s.bOn ? this.sci(MU0 * N * s.I / (2 * R), 2, 'T') : '0 T (SB open)',
+      screened: s.eOn && !s.good,
+      feW: (100 * fe / fmax).toFixed(1) + '%',
+      fbW: (100 * fb / fmax).toFixed(1) + '%',
+      vRatioTxt: E > 0 && B > 0 ? this.sci(E / B, 2, 'm/s') : '—',
+      balanced: balanced, notBalanced: !balanced,
+      cannotNote1: !balanced,
+      s1Txt: s1 ? 'Genoteerd: E = ' + this.sci(s1.E, 2, 'V/m') + ', B = ' + this.sci(s1.B, 2, 'T') + ', v = ' + this.sci(s1.E / s1.B, 2, 'm/s') : 'Nog niets genoteerd.',
+      s2Hint: s2HintTxt !== '', s2HintTxt: s2HintTxt,
+      cannotNote2: !canNote2,
+      hasS2: !!s2,
+      s2Y: s2 ? this.dec(s2.Y * 1000, 1) + ' mm' : '',
+      s2y: s2 ? this.sci(s2.y, 2, 'm') : '',
+      s1E: s1 ? this.sci(s1.E, 2, 'V/m') : '',
+      s1B: s1 ? this.sci(s1.B, 2, 'T') : '',
+      s2em: s2 ? this.sci(s2.em, 2, 'C/kg') : '',
+      s2emShort: s2 ? this.sci(s2.em, 2, 'C/kg') : '—',
+      ratioH: s2 ? '≈ ' + Math.round(s2.em / 9.58e7) : '—',
+      reset: () => self.setState(self.initial()),
+      togglePower: () => self.setState({ power: !s.power }),
+      setGap: (e) => self.setState({ gap: parseFloat(e.target.value) }),
+      setGood: () => self.setState({ good: true }),
+      setBad: () => self.setState({ good: false }),
+      toggleE: () => self.setState({ eOn: !s.eOn }),
+      setCells: (e) => self.setState({ cells: parseInt(e.target.value, 10) }),
+      toggleB: () => self.setState({ bOn: !s.bOn }),
+      setI: (e) => self.setState({ I: parseFloat(e.target.value) }),
+      note1: () => { if (balanced) self.setState({ s1: { E: E, B: B, cells: s.cells, gap: s.gap }, s2: null }); },
+      note2: () => {
+        if (!canNote2) return;
+        const Ym = Math.round(Y * 2000) / 2000;
+        const y = Ym * (L / 2) / (L / 2 + D);
+        const em = 2 * y * s1.E / (s1.B * s1.B * L * L);
+        self.setState({ s2: { Y: Ym, y: y, em: em } });
+      }
+    };
+  }
+}
+
+return Component; })();
+const C3D = (() => { 
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { yaw: 32, pitch: 18, gap: 0.8, cells: 110, eOn: true, bOn: false, I: 0.28, fields: true, forces: true };
+    this.drag = null;
+  }
+  dec(x, n) { return x.toFixed(n).replace('.', ','); }
+  sci(x, n, unit) {
+    if (!x || !isFinite(x)) return '0 ' + unit;
+    const sup = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    let e = Math.floor(Math.log10(Math.abs(x)));
+    let m = x / Math.pow(10, e);
+    if (Math.abs(m) >= 9.995) { m = m / 10; e += 1; }
+    return m.toFixed(n).replace('.', ',') + ' · 10' + String(e).split('').map(c => sup[c]).join('') + ' ' + unit;
+  }
+  renderVals() {
+    const s = this.state, self = this;
+    const EM = 1.759e11, MU0 = 4e-7 * Math.PI, N = 100, R = 0.05, d = 0.015, L = 0.05, XS = 0.30;
+    const Va = s.gap * 3000, v = Math.sqrt(2 * EM * Va);
+    const Vp = s.cells * 2, E = s.eOn ? Vp / d : 0;
+    const B = s.bOn ? Math.pow(0.8, 1.5) * MU0 * N * s.I / R : 0;
+    const a = EM * (E - v * B);
+
+    // projectie
+    const yaw = s.yaw * Math.PI / 180, pit = s.pitch * Math.PI / 180;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pit), sp = Math.sin(pit);
+    const DIST = 1.0, SC = 2000, CX = 0.075, W2 = 600, H2 = 320;
+    const rot = (x, y, z) => { const x0 = x - CX; const x1 = x0 * cy + z * sy; const z1 = -x0 * sy + z * cy; return [x1, y * cp - z1 * sp, y * sp + z1 * cp]; };
+    const P = (x, y, z) => { const r = rot(x, y, z); const k = DIST / (DIST - r[2]); return [W2 + r[0] * k * SC, H2 - r[1] * k * SC, r[2]]; };
+    const f = (n) => n.toFixed(1);
+    const pl = (pts, close) => 'M' + pts.map(p => { const q = P(p[0], p[1], p[2]); return f(q[0]) + ' ' + f(q[1]); }).join(' L') + (close ? ' Z' : '');
+    const ringYZ = (x, r, n) => { const pts = []; for (let i = 0; i <= n; i++) { const t = 2 * Math.PI * i / n; pts.push([x, r * Math.cos(t), r * Math.sin(t)]); } return pl(pts); };
+    const ringXY = (xc, yc, z, r, n) => { const pts = []; for (let i = 0; i <= n; i++) { const t = 2 * Math.PI * i / n; pts.push([xc + r * Math.cos(t), yc + r * Math.sin(t), z]); } return pl(pts); };
+    const arrow = (A, Bp, hs) => {
+      const p = P(A[0], A[1], A[2]), q = P(Bp[0], Bp[1], Bp[2]);
+      const dx = q[0] - p[0], dy = q[1] - p[1], len = Math.hypot(dx, dy);
+      let d0 = 'M' + f(p[0]) + ' ' + f(p[1]) + ' L' + f(q[0]) + ' ' + f(q[1]);
+      if (len < 2) return 'M' + f(q[0] - 3) + ' ' + f(q[1]) + ' a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0';
+      const ux = dx / len, uy = dy / len, h = hs || 9;
+      const bx = q[0] - ux * h, by = q[1] - uy * h;
+      return d0 + ' M' + f(bx - uy * h * 0.55) + ' ' + f(by + ux * h * 0.55) + ' L' + f(q[0]) + ' ' + f(q[1]) + ' L' + f(bx + uy * h * 0.55) + ' ' + f(by - ux * h * 0.55);
+    };
+    const rTube = (x) => x < 0.07 ? 0.02 : 0.02 + (x - 0.07) * 0.05 / 0.23;
+
+    // vloerraster
+    const FY = -0.085;
+    let gridD = '';
+    for (let x = -0.16; x <= 0.341; x += 0.04) gridD += pl([[x, FY, -0.09], [x, FY, 0.09]]) + ' ';
+    for (let z = -0.09; z <= 0.091; z += 0.03) gridD += pl([[-0.16, FY, z], [0.34, FY, z]]) + ' ';
+
+    // buis
+    let tubeD = '';
+    [-0.13, -0.09, -0.05, 0.0, 0.035, 0.07, 0.13, 0.19, 0.25].forEach(x => { tubeD += ringYZ(x, rTube(x), 40) + ' '; });
+    for (let i = 0; i < 12; i++) { const t = 2 * Math.PI * i / 12; tubeD += pl([[-0.15, 0.02 * Math.cos(t), 0.02 * Math.sin(t)], [0.07, 0.02 * Math.cos(t), 0.02 * Math.sin(t)], [XS, 0.07 * Math.cos(t), 0.07 * Math.sin(t)]]) + ' '; }
+    const tubeEdgeD = ringYZ(-0.15, 0.02, 40) + ' ' + ringYZ(0.07, 0.02, 40);
+    const screenD = ringYZ(XS, 0.07, 60) + ' Z';
+    const cathodeD = ringYZ(-0.13, 0.009, 30) + ' Z';
+    let anodeD = '';
+    { const outer = [], inner = []; for (let i = 0; i <= 30; i++) { const t = 2 * Math.PI * i / 30; outer.push([-0.09, 0.016 * Math.cos(t), 0.016 * Math.sin(t)]); inner.push([-0.09, 0.003 * Math.cos(-t), 0.003 * Math.sin(-t)]); } anodeD = pl(outer, true) + ' ' + pl(inner, true); }
+
+    // platen
+    const plate = (y) => pl([[0, y, -0.012], [L, y, -0.012], [L, y, 0.012], [0, y, 0.012]], true);
+    const plateTopD = plate(d / 2), plateBotD = plate(-d / 2);
+
+    // spoelen (Helmholtz, as langs z)
+    const zc = R / 2;
+    const near = P(0.025, 0, zc)[2] > P(0.025, 0, -zc)[2];
+    const coilA = ringXY(0.025, 0, zc, R, 60), coilB = ringXY(0.025, 0, -zc, R, 60);
+
+    // veldlijnen
+    let eFieldD = '';
+    [0.008, 0.025, 0.042].forEach(x => [-0.007, 0.007].forEach(z => { eFieldD += arrow([x, 0.006, z], [x, -0.006, z], 6) + ' '; }));
+    let bA = '', bB = '';
+    [0.0, 0.025, 0.05].forEach(x => [-0.013, 0.013].forEach(y => {
+      bA += pl([[x, y, zc], [x, y, 0]]) + ' ';
+      bB += arrow([x, y, 0], [x, y, -zc], 8) + ' ';
+    }));
+
+    // baan
+    const toPts = [];
+    toPts.push([-0.128, 0, 0], [0, 0, 0]);
+    const yL = 0.5 * a * Math.pow(L / v, 2);
+    let end = 'screen', Yend = 0;
+    if (Math.abs(yL) > d / 2 - 0.0006) {
+      end = 'plate';
+      const uEnd = v * Math.sqrt((d - 0.0012) / Math.abs(a));
+      for (let i = 1; i <= 24; i++) { const u = uEnd * i / 24; toPts.push([u, 0.5 * a * Math.pow(u / v, 2), 0]); }
+    } else {
+      for (let i = 1; i <= 24; i++) { const u = L * i / 24; toPts.push([u, 0.5 * a * Math.pow(u / v, 2), 0]); }
+      const th = a * L / (v * v);
+      let xe = XS;
+      for (let x = L + 0.001; x <= XS; x += 0.001) { if (Math.abs(yL + th * (x - L)) > rTube(x) - 0.0005) { end = 'wall'; xe = x; break; } }
+      Yend = yL + th * (xe - L);
+      toPts.push([xe, Yend, 0]);
+    }
+    const beamD = pl(toPts);
+    const shadowD = pl(toPts.map(p => [p[0], FY, p[2]]));
+    const last = toPts[toPts.length - 1];
+    const endP = P(last[0], last[1], last[2]);
+    const dropD = pl([[last[0], last[1], 0], [last[0], FY, 0]]);
+
+    // krachten op een elektron midden tussen de platen
+    const xs = 0.025, ysm = Math.abs(a) > 0 ? Math.max(-d / 2, Math.min(d / 2, 0.5 * a * Math.pow(xs / v, 2))) : 0;
+    const kF = 0.022 / 15000;
+    const fe = Math.min(0.04, E * kF), fb = Math.min(0.04, v * B * kF);
+    const vArrowD = arrow([xs, ysm, 0], [xs + 0.03, ysm, 0], 10);
+    const feArrowD = arrow([xs - 0.003, ysm, 0], [xs - 0.003, ysm + fe, 0], 10);
+    const fbArrowD = arrow([xs + 0.003, ysm, 0], [xs + 0.003, ysm - fb, 0], 10);
+    const eDot = P(xs, ysm, 0), vL = P(xs + 0.033, ysm, 0), feL = P(xs - 0.003, ysm + fe + 0.004, 0), fbL = P(xs + 0.003, ysm - fb - 0.008, 0);
+
+    // labels
+    const kL = P(-0.13, -0.03, 0), aL = P(-0.09, 0.024, 0), sL = P(XS, 0.078, 0), cL = P(0.025, R + 0.008, near ? zc : -zc);
+    const bL = P(0.05, 0.016, -zc - 0.006), eL = P(0.054, 0.0, 0.014);
+
+    // assenkruis (zonder perspectief)
+    const T0 = [92, 590], TL = 46;
+    const tr = (x, y, z) => { const x1 = x * cy + z * sy, z1 = -x * sy + z * cy; return [T0[0] + x1 * TL, T0[1] - (y * cp - z1 * sp) * TL]; };
+    const tx = tr(1, 0, 0), ty = tr(0, 1, 0), tz = tr(0, 0, 1);
+    const triadD = ['M', T0[0], T0[1], 'L', f(tx[0]), f(tx[1]), 'M', T0[0], T0[1], 'L', f(ty[0]), f(ty[1]), 'M', T0[0], T0[1], 'L', f(tz[0]), f(tz[1])].join(' ');
+    const lab = (p) => { const dx = p[0] - T0[0], dy = p[1] - T0[1], l = Math.hypot(dx, dy) || 1; return [p[0] + dx / l * 12 - 4, p[1] + dy / l * 12 + 5]; };
+    const lx = lab(tx), ly = lab(ty), lz = lab(tz);
+
+    const fmax = Math.max(E, v * B, 1);
+    const balanced = E > 0 && B > 0 && Math.abs(1 - v * B / E) < 0.015;
+    const setView = (y, p) => () => self.setState({ yaw: y, pitch: p });
+
+    return {
+      gridD, tubeD, tubeEdgeD, screenD, cathodeD, anodeD, plateTopD, plateBotD, eFieldD,
+      coilFarD: near ? coilB : coilA, coilNearD: near ? coilA : coilB,
+      bFarD: near ? bB : bA, bNearD: near ? bA : bB,
+      coilOn: s.bOn && s.I > 0 ? 'on' : '',
+      bCls: s.fields && s.bOn && s.I > 0 ? '' : 'hide',
+      eCls: s.fields && s.eOn && Vp > 0 ? '' : 'hide',
+      beamCls: '', beamD, shadowD, dropD,
+      flowDur: (0.55 * 2.9e7 / v).toFixed(2) + 's',
+      endX: f(endP[0]), endY: f(endP[1]),
+      forceCls: s.forces ? '' : 'hide',
+      feCls: E > 0 ? '' : 'hide', fbCls: B > 0 ? '' : 'hide',
+      vArrowD, feArrowD, fbArrowD,
+      eDotX: f(eDot[0]), eDotY: f(eDot[1]),
+      vLx: f(vL[0] + 6), vLy: f(vL[1] + 5),
+      feLx: f(feL[0] - 40), feLy: f(feL[1]),
+      fbLx: f(fbL[0] + 8), fbLy: f(fbL[1] + 14),
+      kLx: f(kL[0] - 40), kLy: f(kL[1] + 18), aLx: f(aL[0] - 20), aLy: f(aL[1] - 10),
+      sLx: f(sL[0] - 20), sLy: f(sL[1] - 10), cLx: f(cL[0] - 60), cLy: f(cL[1] - 12),
+      bLx: f(bL[0] + 6), bLy: f(bL[1]), eLx: f(eL[0] + 8), eLy: f(eL[1] + 5),
+      triadD, txX: f(lx[0]), txY: f(lx[1]), tyX: f(ly[0]), tyY: f(ly[1]), tzX: f(lz[0]), tzY: f(lz[1]),
+      yaw: s.yaw, pitch: s.pitch, yawTxt: String(s.yaw), pitchTxt: String(s.pitch),
+      gap: s.gap, cells: s.cells, I: s.I,
+      gapTxt: this.dec(s.gap, 1), vaTxt: this.dec(Va / 1000, 1) + ' kV', vpTxt: String(Vp), iTxt: this.dec(s.I, 3),
+      eP: s.eOn ? 'true' : 'false', eTxt: s.eOn ? 'gesloten' : 'open',
+      bP: s.bOn ? 'true' : 'false', bTxt: s.bOn ? 'gesloten' : 'open',
+      fieldsP: s.fields ? 'true' : 'false', forcesP: s.forces ? 'true' : 'false',
+      eVal: s.eOn ? this.sci(Vp / d, 2, 'V/m') : '0 V/m (SE open)',
+      bVal: s.bOn ? this.sci(B, 2, 'T') : '0 T (SB open)',
+      feW: (100 * E / fmax).toFixed(1) + '%', fbW: (100 * v * B / fmax).toFixed(1) + '%',
+      vTxt: this.sci(v, 2, 'm/s'),
+      yTxt: end === 'screen' ? (Yend >= 0 ? '+' : '−') + this.dec(Math.abs(Yend) * 1000, 1) + ' mm' : (end === 'plate' ? 'straal op plaat' : 'straal op glaswand'),
+      balanced,
+      down: (e) => { self.drag = { x: e.clientX, y: e.clientY, yaw: s.yaw, pitch: s.pitch }; if (e.currentTarget && e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId); },
+      move: (e) => { const g = self.drag; if (!g) return; let yw = Math.round(g.yaw + (e.clientX - g.x) * 0.4); while (yw > 180) yw -= 360; while (yw < -180) yw += 360; const pt = Math.max(-89, Math.min(89, Math.round(g.pitch + (e.clientY - g.y) * 0.4))); self.setState({ yaw: yw, pitch: pt }); },
+      up: () => { self.drag = null; },
+      viewSide: setView(0, 0), viewTop: setView(0, 89), viewBack: setView(-90, 0), viewIso: setView(32, 18),
+      setYaw: (e) => self.setState({ yaw: parseInt(e.target.value, 10) }),
+      setPitch: (e) => self.setState({ pitch: parseInt(e.target.value, 10) }),
+      toggleFields: () => self.setState({ fields: !s.fields }),
+      toggleForces: () => self.setState({ forces: !s.forces }),
+      setGap: (e) => self.setState({ gap: parseFloat(e.target.value) }),
+      setCells: (e) => self.setState({ cells: parseInt(e.target.value, 10) }),
+      setI: (e) => self.setState({ I: parseFloat(e.target.value) }),
+      toggleE: () => self.setState({ eOn: !s.eOn }),
+      toggleB: () => self.setState({ bOn: !s.bOn })
+    };
+  }
+}
+
+return Component; })();
+mount(document.getElementById('v2d'), document.getElementById('t2d'), C2D);
+mount(document.getElementById('v3d'), document.getElementById('t3d'), C3D);
+function route() {
+  const is3d = location.hash === '#3d';
+  document.getElementById('v2d').hidden = is3d;
+  document.getElementById('v3d').hidden = !is3d;
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>

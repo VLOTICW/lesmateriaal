@@ -1,0 +1,320 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Dubbelspleet in 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: een donker optisch labo; links de 3D-opstelling, rechts het bedieningspaneel, onderaan het intensiteitsprofiel op het scherm */
+:root{
+  --bg:#0c1016; --panel:#141a22; --line:#263040; --fg:#e8ebf0; --muted:#97a2b3; --accent:#7fd0ff; --warm:#ffb15c;
+  --display:'Fraunces', Georgia, serif; --body:'Atkinson Hyperlegible', Verdana, sans-serif; --mono:'JetBrains Mono', ui-monospace, monospace;
+  color-scheme:dark;
+}
+html,body{height:auto}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:6px;max-width:760px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--warm)}
+h1{margin:0;font:600 clamp(30px,4vw,46px)/1.08 var(--display);text-wrap:balance}
+header p{margin:0;color:var(--muted)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#06080c;aspect-ratio:16/10;max-width:100%}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.tag{position:absolute;font:500 12px var(--mono);color:var(--muted);background:rgba(12,16,22,.75);padding:3px 8px;border-radius:6px;pointer-events:none;white-space:nowrap}
+.views{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;flex-wrap:wrap}
+.views button{font:500 13px var(--body);color:var(--fg);background:rgba(20,26,34,.85);border:1px solid var(--line);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:36px}
+.views button:hover,.views button:focus-visible{border-color:var(--accent);outline:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:18px}
+.panel h2{margin:0;font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl label{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:15px}
+.ctl label span{font:500 14px var(--mono);color:var(--accent);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--accent);height:26px}
+#lambda{accent-color:var(--lc,#5f5)}
+.spectrum{height:8px;border-radius:4px;background:linear-gradient(90deg,#7a00ff 0%,#0046ff 18%,#00b4ff 30%,#00ff73 45%,#c8ff00 58%,#ffbe00 70%,#ff4600 84%,#ff0000 100%)}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{text-align:center;padding:9px 6px;cursor:pointer;font-size:14px;color:var(--muted)}
+.seg input:checked+label{background:#1f2a38;color:var(--fg);font-weight:700}
+.seg input:focus-visible+label{outline:2px solid var(--accent);outline-offset:-2px}
+.checks{display:flex;flex-direction:column;gap:8px}
+.checks label{display:flex;gap:10px;align-items:center;font-size:15px;cursor:pointer}
+.checks input{width:18px;height:18px;accent-color:var(--accent)}
+.btn{font:700 14px var(--body);color:var(--bg);background:var(--accent);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;min-height:42px}
+.btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.note{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:0}
+.profile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.profile h2{margin:0;font:600 20px var(--display)}
+.profile p{margin:0;color:var(--muted);font-size:14px}
+.profile canvas{width:100%;height:220px;display:block}
+.facts{display:flex;flex-wrap:wrap;gap:10px 28px;font:500 14px var(--mono);color:var(--muted)}
+.facts b{color:var(--fg);font-weight:500}
+@media (prefers-reduced-motion: reduce){.views button{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hoofdstuk 1 · Het dubbelspleetexperiment</div>
+    <h1>Eén golf, twee spleten, twee bronnen</h1>
+    <p>Een vlakke lichtgolf valt op een plaat met twee smalle spleten. Elke spleet wordt een nieuwe bron. Waar de twee golven elkaar ontmoeten, versterken ze elkaar of doven ze elkaar uit. Op het scherm verschijnen lichte en donkere strepen.</p>
+  </header>
+
+  <div class="main">
+    <div class="stage" id="stage">
+      <canvas id="gl" aria-label="Driedimensionale weergave van een lichtgolf die door twee spleten gaat en een interferentiepatroon op een scherm vormt"></canvas>
+      <div class="tag" id="tBron">invallende vlakke golf</div>
+      <div class="tag" id="tPlaat">plaat met twee spleten</div>
+      <div class="tag" id="tScherm">scherm</div>
+      <div class="views">
+        <button type="button" id="vSchuin">Schuin</button>
+        <button type="button" id="vBoven">Bovenaanzicht</button>
+        <button type="button" id="vScherm">Zicht op het scherm</button>
+      </div>
+    </div>
+
+    <aside class="panel" aria-label="Instellingen">
+      <h2>Instellingen</h2>
+      <div class="ctl">
+        <label for="lambda">Golflengte <span id="lambdaTxt">532 nm</span></label>
+        <input id="lambda" type="range" min="400" max="700" step="1" value="532">
+        <div class="spectrum" aria-hidden="true"></div>
+      </div>
+      <div class="ctl">
+        <label for="dist">Afstand tussen de spleten <span id="distTxt"></span></label>
+        <input id="dist" type="range" min="6" max="20" step="0.1" value="10">
+      </div>
+      <div class="ctl">
+        <label for="width">Breedte van een spleet <span id="widthTxt"></span></label>
+        <input id="width" type="range" min="0.2" max="2" step="0.05" value="0.8">
+      </div>
+      <div class="ctl">
+        <span style="font-weight:700;font-size:15px">Weergave achter de spleten</span>
+        <div class="seg" role="radiogroup" aria-label="Weergave">
+          <input type="radio" name="mode" id="mGolf" value="0" checked><label for="mGolf">Golf</label>
+          <input type="radio" name="mode" id="mInt" value="1"><label for="mInt">Intensiteit</label>
+        </div>
+      </div>
+      <div class="checks">
+        <label for="s1"><input type="checkbox" id="s1" checked> Bovenste spleet open</label>
+        <label for="s2"><input type="checkbox" id="s2" checked> Onderste spleet open</label>
+      </div>
+      <button class="btn" type="button" id="pause">Pauzeer de golf</button>
+      <p class="note">Model. De golflengte is in de figuur sterk vergroot: de spleetafstand is hier enkele golflengten. Bij echte proeven liggen de spleten zo’n honderd golflengten uit elkaar, en liggen de strepen veel dichter bij elkaar. De afname van de amplitude met de afstand is voor de zichtbaarheid gecompenseerd.</p>
+    </aside>
+  </div>
+
+  <section class="profile" aria-label="Intensiteit op het scherm">
+    <h2>Intensiteit op het scherm</h2>
+    <p>Horizontaal: de plaats op het scherm, gemeten vanaf het midden, in golflengten. Verticaal: de lichtintensiteit op die plaats, relatief ten opzichte van de helderste streep.</p>
+    <canvas id="plot" aria-label="Grafiek van de intensiteit in functie van de plaats op het scherm"></canvas>
+    <div class="facts">
+      <span>spleetafstand <b id="fD"></b></span>
+      <span>spleetbreedte <b id="fA"></b></span>
+      <span>afstand plaat–scherm <b id="fL"></b></span>
+      <span>afstand tussen heldere strepen <b id="fDy"></b></span>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  // ---- geometrie in modeleenheden (golflengte op het scherm = lambda/200) ----
+  const X0 = -18, L = 60, W = 64;          // golfveld van x=X0 tot x=L, breedte W (langs z)
+  const state = {lambda:532, d:10, a:0.8, mode:0, s1:1, s2:1, paused:false, t:0};
+  const lv = () => state.lambda/200;       // golflengte in modeleenheden (2,0 tot 3,5)
+
+  function wl2rgb(nm){
+    let r=0,g=0,b=0;
+    if(nm<440){r=-(nm-440)/60;b=1}else if(nm<490){g=(nm-440)/50;b=1}else if(nm<510){g=1;b=-(nm-510)/20}
+    else if(nm<580){r=(nm-510)/70;g=1}else if(nm<645){r=1;g=-(nm-645)/65}else{r=1}
+    let f=1; if(nm<420)f=.4+.6*(nm-400)/20; else if(nm>680)f=.4+.6*(700-nm)/20;
+    return [Math.pow(r*f,.8),Math.pow(g*f,.8),Math.pow(b*f,.8)];
+  }
+
+  // ---- renderer en scène ----
+  const stage=document.getElementById('stage'), cv=document.getElementById('gl');
+  const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x06080c);
+  const camera=new THREE.PerspectiveCamera(42,16/10,0.5,500);
+  const controls=new THREE.OrbitControls(camera,cv);
+  controls.enableDamping=true; controls.target.set(18,0,0);
+  scene.add(new THREE.AmbientLight(0xffffff,.55));
+  const dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(-20,40,30); scene.add(dl);
+
+  // ---- golfveld: vlak met shader ----
+  const NSRC=8; // punten per spleet: geeft ook de buiging aan één spleet
+  const uniforms={uT:{value:0},uK:{value:2*Math.PI/lv()},uD:{value:state.d},uA:{value:state.a},
+    uS1:{value:1},uS2:{value:1},uMode:{value:0},uColor:{value:new THREE.Color().fromArray(wl2rgb(state.lambda))}};
+  const common=`
+    uniform float uT,uK,uD,uA,uS1,uS2,uMode; uniform vec3 uColor;
+    vec3 field(vec2 p){ // geeft (momentane golf, intensiteit, 1 als achter de plaat)
+      if(p.x<0.0){ float w=cos(uK*p.x-uT); return vec3(w,1.0,0.0); }
+      float re=0.0, im=0.0;
+      for(int s=0;s<2;s++){
+        float on = s==0 ? uS1 : uS2;
+        float c  = s==0 ? 0.5*uD : -0.5*uD;
+        for(int j=0;j<${NSRC};j++){
+          float yj=c+uA*((float(j)+0.5)/${NSRC}.0-0.5);
+          float r=length(vec2(p.x,p.y-yj));
+          float w=on/((sqrt(r)+0.6)*${NSRC}.0);
+          re+=w*cos(uK*r); im+=w*sin(uK*r);
+        }
+      }
+      float g=sqrt(max(p.x,1.0))*0.9;   // compensatie van de afname met de afstand
+      float wave=(re*cos(uT)+im*sin(uT))*g;
+      float I=(re*re+im*im)*g*g;
+      return vec3(wave,I,1.0);
+    }`;
+  const geo=new THREE.PlaneGeometry(L-X0,W,420,340);
+  geo.translate((L+X0)/2,0,0);
+  const mat=new THREE.ShaderMaterial({uniforms,side:THREE.DoubleSide,
+    vertexShader:common+`
+      varying vec2 vP;
+      void main(){ vP=position.xy; vec3 f=field(vP);
+        float h = uMode<0.5 ? clamp(f.x,-1.6,1.6)*0.55 : 0.0;
+        vec3 pos=position; pos.z=h;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0); }`,
+    fragmentShader:common+`
+      varying vec2 vP;
+      void main(){ vec3 f=field(vP); vec3 col;
+        if(uMode<0.5 || f.z<0.5){ float v=clamp(f.x*0.75,-1.0,1.0); float b=0.5+0.5*v; col=uColor*pow(b,1.6)*1.15 + vec3(0.015,0.02,0.03); }
+        else { float I=clamp(f.y*0.32,0.0,1.4); col=uColor*pow(I,0.75) + vec3(0.012,0.016,0.022); }
+        gl_FragColor=vec4(col,1.0); }`});
+  const field=new THREE.Mesh(geo,mat); field.rotation.x=-Math.PI/2; scene.add(field);
+
+  // ---- plaat met twee spleten ----
+  const plateMat=new THREE.MeshStandardMaterial({color:0x8a94a3,metalness:.4,roughness:.5});
+  let plate=new THREE.Group(); scene.add(plate);
+  function buildPlate(){
+    scene.remove(plate); plate=new THREE.Group();
+    const H=3.2,T=0.5; const d=state.d,a=state.a;
+    const edges=[-W/2, -d/2-a/2, -d/2+a/2, d/2-a/2, d/2+a/2, W/2]; // in lokale y van het veld (= -z)
+    const solid=[[0,1],[2,3],[4,5]];
+    if(!state.s2) solid.push([1,2]); // onderste spleet (lokale y<0 → z>0)
+    if(!state.s1) solid.push([3,4]);
+    solid.forEach(([i,j])=>{ const y0=edges[i],y1=edges[j]; const len=y1-y0; if(len<=0)return;
+      const m=new THREE.Mesh(new THREE.BoxGeometry(T,H,len),plateMat); m.position.set(0,H/2-0.6,-(y0+y1)/2); plate.add(m); });
+    scene.add(plate);
+  }
+
+  // ---- laser ----
+  const laser=new THREE.Mesh(new THREE.BoxGeometry(5,2.4,3),new THREE.MeshStandardMaterial({color:0x2a3240,metalness:.5,roughness:.4}));
+  laser.position.set(X0-3.5,0.6,0); scene.add(laser);
+  const aperture=new THREE.Mesh(new THREE.CircleGeometry(0.7,32),new THREE.MeshBasicMaterial({color:0xffffff}));
+  aperture.rotation.y=Math.PI/2; aperture.position.set(X0-0.99,0.6,0); scene.add(aperture);
+
+  // ---- scherm met interferentiepatroon ----
+  const SN=512; const scv=document.createElement('canvas'); scv.width=SN; scv.height=8;
+  const sctx=scv.getContext('2d'); const stex=new THREE.CanvasTexture(scv);
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(W,10),new THREE.MeshBasicMaterial({map:stex,side:THREE.DoubleSide}));
+  screen.rotation.y=-Math.PI/2; screen.position.set(L+0.3,4.4,0); scene.add(screen);
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(0.4,10.6,W+0.6),new THREE.MeshStandardMaterial({color:0x1b222c}));
+  frame.position.set(L+0.6,4.4,0); scene.add(frame);
+
+  // intensiteit op het scherm: zelfde puntbronnen, tijdgemiddeld
+  function intensityAt(yLocal){
+    const k=2*Math.PI/lv(); let re=0,im=0;
+    [[state.s1,0.5*state.d],[state.s2,-0.5*state.d]].forEach(([on,c])=>{ if(!on)return;
+      for(let j=0;j<NSRC;j++){ const yj=c+state.a*((j+.5)/NSRC-.5); const r=Math.hypot(L,yLocal-yj);
+        const w=1/((Math.sqrt(r)+.6)*NSRC); re+=w*Math.cos(k*r); im+=w*Math.sin(k*r);} });
+    return re*re+im*im;
+  }
+  let profile=[];
+  function updateScreen(){
+    profile=[]; let max=0;
+    for(let i=0;i<SN;i++){ const z=-W/2+W*(i+.5)/SN; const I=intensityAt(-z); profile.push([z,I]); if(I>max)max=I; }
+    profile=profile.map(([z,I])=>[z,max>0?I/max:0]);
+    const c=wl2rgb(state.lambda); const img=sctx.createImageData(SN,8);
+    for(let i=0;i<SN;i++){ const v=Math.pow(profile[i][1],0.7);
+      for(let r=0;r<8;r++){ const o=(r*SN+i)*4; img.data[o]=255*c[0]*v+6; img.data[o+1]=255*c[1]*v+8; img.data[o+2]=255*c[2]*v+12; img.data[o+3]=255; } }
+    sctx.putImageData(img,0,0); stex.needsUpdate=true;
+    drawPlot();
+  }
+
+  // ---- grafiek ----
+  const plot=document.getElementById('plot'), pctx=plot.getContext('2d');
+  function drawPlot(){
+    if(!profile.length) return;
+    const dpr=Math.min(window.devicePixelRatio||1,2); const w=plot.clientWidth, h=plot.clientHeight;
+    plot.width=w*dpr; plot.height=h*dpr; pctx.setTransform(dpr,0,0,dpr,0,0); pctx.clearRect(0,0,w,h);
+    const ml=46,mr=14,mt=12,mb=34; const pw=w-ml-mr, ph=h-mt-mb;
+    const zr=W/2/lv(); // bereik in golflengten
+    const sx=z=>ml+(z/lv()+zr)/(2*zr)*pw, sy=I=>mt+ph*(1-I);
+    pctx.strokeStyle='#263040'; pctx.lineWidth=1; pctx.font='12px "JetBrains Mono", monospace'; pctx.fillStyle='#97a2b3';
+    [0,.5,1].forEach(v=>{ pctx.beginPath(); pctx.moveTo(ml,sy(v)); pctx.lineTo(ml+pw,sy(v)); pctx.stroke(); pctx.textAlign='right'; pctx.fillText(v.toFixed(1).replace('.',','),ml-8,sy(v)+4); });
+    const step=zr>12?5:2; pctx.textAlign='center';
+    for(let t=-Math.floor(zr/step)*step;t<=zr;t+=step){ const x=sx(t*lv()); pctx.beginPath(); pctx.moveTo(x,mt); pctx.lineTo(x,mt+ph); pctx.stroke(); pctx.fillText(String(t),x,mt+ph+18); }
+    pctx.fillText('plaats op het scherm (golflengten)',ml+pw/2,h-2);
+    const c=wl2rgb(state.lambda); const col=`rgb(${(c[0]*255)|0},${(c[1]*255)|0},${(c[2]*255)|0})`;
+    pctx.beginPath(); profile.forEach(([z,I],i)=>{ const x=sx(z),y=sy(I); i?pctx.lineTo(x,y):pctx.moveTo(x,y); });
+    pctx.lineTo(sx(profile[profile.length-1][0]),sy(0)); pctx.lineTo(sx(profile[0][0]),sy(0)); pctx.closePath();
+    pctx.globalAlpha=.22; pctx.fillStyle=col; pctx.fill(); pctx.globalAlpha=1;
+    pctx.beginPath(); profile.forEach(([z,I],i)=>{ const x=sx(z),y=sy(I); i?pctx.lineTo(x,y):pctx.moveTo(x,y); });
+    pctx.strokeStyle=col; pctx.lineWidth=2; pctx.stroke();
+  }
+
+  // ---- teksten ----
+  const fmt=(x,n)=>x.toFixed(n).replace('.',',');
+  function updateText(){
+    const c=wl2rgb(state.lambda); const css=`rgb(${(c[0]*255)|0},${(c[1]*255)|0},${(c[2]*255)|0})`;
+    document.getElementById('lambda').style.setProperty('--lc',css);
+    document.getElementById('lambdaTxt').textContent=state.lambda+' nm';
+    document.getElementById('lambdaTxt').style.color=css;
+    document.getElementById('distTxt').textContent=fmt(state.d/lv(),1)+' λ';
+    document.getElementById('widthTxt').textContent=fmt(state.a/lv(),2)+' λ';
+    document.getElementById('fD').textContent=fmt(state.d/lv(),1)+' golflengten';
+    document.getElementById('fA').textContent=fmt(state.a/lv(),2)+' golflengten';
+    document.getElementById('fL').textContent=fmt(L/lv(),0)+' golflengten';
+    const both=state.s1&&state.s2;
+    document.getElementById('fDy').textContent= both ? '≈ '+fmt(L/state.d,1)+' golflengten (bij het midden)' : 'geen strepen: één spleet';
+  }
+
+  function sync(){
+    uniforms.uK.value=2*Math.PI/lv(); uniforms.uD.value=state.d; uniforms.uA.value=state.a;
+    uniforms.uS1.value=state.s1; uniforms.uS2.value=state.s2; uniforms.uMode.value=state.mode;
+    uniforms.uColor.value.fromArray(wl2rgb(state.lambda));
+    aperture.material.color.fromArray(wl2rgb(state.lambda));
+    buildPlate(); updateScreen(); updateText();
+  }
+
+  // ---- bediening ----
+  const $=id=>document.getElementById(id);
+  $('lambda').addEventListener('input',e=>{state.lambda=+e.target.value;sync();});
+  $('dist').addEventListener('input',e=>{state.d=+e.target.value;sync();});
+  $('width').addEventListener('input',e=>{state.a=+e.target.value;sync();});
+  document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener('change',e=>{state.mode=+e.target.value;sync();}));
+  $('s1').addEventListener('change',e=>{state.s1=e.target.checked?1:0;sync();});
+  $('s2').addEventListener('change',e=>{state.s2=e.target.checked?1:0;sync();});
+  $('pause').addEventListener('click',()=>{state.paused=!state.paused;$('pause').textContent=state.paused?'Laat de golf lopen':'Pauzeer de golf';});
+  function view(p,t){camera.position.set(...p);controls.target.set(...t);controls.update();}
+  $('vSchuin').addEventListener('click',()=>view([-38,42,52],[18,0,0]));
+  $('vBoven').addEventListener('click',()=>view([21,95,0.01],[21,0,0]));
+  $('vScherm').addEventListener('click',()=>view([12,10,0],[60,4,0]));
+
+  // ---- labels bij 3D-punten ----
+  const tags=[[$('tBron'),new THREE.Vector3(X0+4,1.5,-18)],[$('tPlaat'),new THREE.Vector3(0,3.4,-16)],[$('tScherm'),new THREE.Vector3(L,10.2,-20)]];
+  function placeTags(){
+    const w=cv.clientWidth,h=cv.clientHeight;
+    tags.forEach(([el,p])=>{ const v=p.clone().project(camera); const vis=v.z<1&&Math.abs(v.x)<1.05&&Math.abs(v.y)<1.05;
+      el.hidden=!vis; el.style.left=((v.x+1)/2*w-el.offsetWidth/2)+'px'; el.style.top=((1-v.y)/2*h-14)+'px'; });
+  }
+
+  function resize(){ const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); drawPlot(); }
+  window.addEventListener('resize',resize);
+
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){state.paused=true;$('pause').textContent='Laat de golf lopen';}
+  let last=performance.now();
+  function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now;
+    if(!state.paused){state.t+=dt*4.5; uniforms.uT.value=state.t;}
+    controls.update(); renderer.render(scene,camera); placeTags(); requestAnimationFrame(loop); }
+
+  view([-38,42,52],[18,0,0]); resize(); sync(); requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>

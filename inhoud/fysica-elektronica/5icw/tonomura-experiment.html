@@ -1,0 +1,290 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tonomura-experiment</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: donker elektronenlabo; boven de 3D-kolom naast de detector die zich vult, onder de veldemissie in een energiediagram */
+:root{
+  --bg:#0b0f14; --panel:#131a22; --line:#253042; --fg:#e8ebf0; --muted:#98a3b4; --accent:#9be7ff; --warm:#ffb15c; --dot:#c9f3ff;
+  --display:'Fraunces', Georgia, serif; --body:'Atkinson Hyperlegible', Verdana, sans-serif; --mono:'JetBrains Mono', ui-monospace, monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:6px;max-width:800px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--warm)}
+h1{margin:0;font:600 clamp(30px,4vw,46px)/1.08 var(--display);text-wrap:balance}
+h2{margin:0;font:600 20px var(--display)}
+header p,.panel p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#05070a;aspect-ratio:16/11;max-width:100%}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.tag{position:absolute;font:500 12px var(--mono);color:var(--muted);background:rgba(11,15,20,.78);padding:3px 8px;border-radius:6px;pointer-events:none;white-space:nowrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.det{position:relative;border-radius:10px;overflow:hidden;background:#05070a;border:1px solid var(--line)}
+.det canvas{display:block;width:100%;aspect-ratio:1/1;max-width:100%}
+.count{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.count b{font:500 34px var(--mono);color:var(--dot)}
+.count span{color:var(--muted);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button{font:700 14px var(--body);border-radius:9px;padding:8px 12px;min-height:40px;cursor:pointer;border:1px solid var(--line);background:#18212c;color:var(--fg)}
+button:hover,button:focus-visible{border-color:var(--accent);outline:none}
+button.primary{background:var(--accent);color:#06121a;border-color:var(--accent)}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:15px}
+.ctl label span{font:500 14px var(--mono);color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);height:26px}
+.fe{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:960px){.fe{grid-template-columns:minmax(0,1fr)}}
+.fe canvas{width:100%;height:340px;display:block}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.fact{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.fact b{display:block;font:500 20px var(--mono);color:var(--fg)}
+.fact span{font-size:13px;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:0}
+.readout{display:flex;flex-wrap:wrap;gap:8px 24px;font:500 14px var(--mono);color:var(--muted)}
+.readout b{color:var(--fg);font-weight:500}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hitachi, 1989 · Akira Tonomura</div>
+    <h1>Elektronen één voor één</h1>
+    <p>Een veldemissiebron stuurt elektronen door een elektronenmicroscoop naar een detector. Er zijn er zo weinig per seconde dat er nooit twee tegelijk in het toestel zijn. Elk elektron komt aan als één punt. Na duizenden elektronen vormen de punten toch een interferentiepatroon.</p>
+  </header>
+
+  <div class="grid">
+    <div class="stage" id="stage">
+      <canvas id="gl" aria-label="Driedimensionale weergave van de opstelling: veldemissiebron, versnelling, elektronenbiprisma en detector"></canvas>
+      <div class="tag" id="tBron">veldemissiebron</div>
+      <div class="tag" id="tVers">versnelling tot 50 kV</div>
+      <div class="tag" id="tBi">elektronenbiprisma</div>
+      <div class="tag" id="tDet">detector</div>
+    </div>
+
+    <section class="panel" aria-label="Detector">
+      <h2>Wat de detector ziet</h2>
+      <div class="det"><canvas id="det" width="900" height="900" aria-label="Detectorbeeld waarop elk aangekomen elektron een punt is"></canvas></div>
+      <div class="count"><b id="n">0</b><span>elektronen aangekomen</span></div>
+      <div class="row" role="group" aria-label="Spring naar een aantal elektronen">
+        <button type="button" data-n="10">10</button>
+        <button type="button" data-n="100">100</button>
+        <button type="button" data-n="3000">3000</button>
+        <button type="button" data-n="20000">20 000</button>
+        <button type="button" data-n="70000">70 000</button>
+      </div>
+      <div class="ctl">
+        <label for="speed">Tempo <span id="speedTxt"></span></label>
+        <input id="speed" type="range" min="0" max="5" step="1" value="1">
+      </div>
+      <div class="row">
+        <button type="button" class="primary" id="play">Pauzeer</button>
+        <button type="button" id="reset">Wis de detector</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="Veldemissie">
+    <h2>Veldemissie: elektronen tunnelen uit een punt</h2>
+    <div class="fe">
+      <div>
+        <canvas id="fe" aria-label="Energiediagram aan het oppervlak van de wolfraamtip"></canvas>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <p>De bron is een naald van wolfraam met een punt van ongeveer 100 nm. Een spanning van enkele kilovolt op de anode geeft aan die punt een elektrisch veld van miljarden volt per meter.</p>
+        <p>Een elektron in het metaal heeft te weinig energie om eruit te geraken: er is een energiebarrière. Het sterke veld maakt die barrière zo smal dat het elektron er doorheen kan tunnelen. Dat is het tunneleffect uit hoofdstuk 1.</p>
+        <div class="ctl">
+          <label for="field">Veldsterkte aan de punt <span id="fieldTxt"></span></label>
+          <input id="field" type="range" min="2" max="8" step="0.1" value="4">
+        </div>
+        <div class="readout">
+          <span>breedte van de barrière <b id="bw"></b></span>
+          <span>uittredende stroom <b id="cur"></b></span>
+        </div>
+        <p>Omdat alle elektronen uit dat ene kleine punt vertrekken, zijn hun golven goed op elkaar afgestemd. Zonder zo’n bron is het interferentiepatroon niet te zien.</p>
+      </div>
+    </div>
+    <p class="note">Horizontaal: de afstand tot het oppervlak van de tip, in nanometer. Verticaal: de energie van een elektron, in elektronvolt, gemeten vanaf het hoogste bezette niveau in het metaal. Model: de barrière is getekend als een rechte helling; de invloed van de spiegellading is weggelaten. De golf achter de barrière is sterk vergroot getekend: in werkelijkheid tunnelt maar een zeer klein deel. De stroom is relatief, ten opzichte van 4 V/nm.</p>
+  </section>
+
+  <div class="facts">
+    <div class="fact"><b>50 kV</b><span>versnelspanning: snelheid ongeveer 40 % van de lichtsnelheid</span></div>
+    <div class="fact"><b>≈ 5 pm</b><span>golflengte van de elektronen, 100 000 keer kleiner dan die van zichtbaar licht</span></div>
+    <div class="fact"><b>&lt; 1 µm</b><span>dikte van de draad in het biprisma</span></div>
+    <div class="fact"><b>1 per keer</b><span>er is nooit meer dan één elektron tegelijk onderweg</span></div>
+  </div>
+  <p class="note">Tonomura gebruikte geen plaat met twee spleten, maar een elektronenbiprisma: een zeer dunne, positief geladen draad tussen twee geaarde platen. De golf van het elektron gaat langs beide kanten van de draad en wordt naar het midden afgebogen. Achter de draad overlappen de twee delen en interfereren ze, zoals achter twee spleten. De punten op deze detector zijn gesimuleerd: elk punt wordt willekeurig gekozen volgens het berekende interferentiepatroon.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const fmt=(x,n)=>x.toFixed(n).replace('.',',');
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ===== interferentiepatroon op de detector (u in [-1,1]) =====
+  const FR=11;                       // aantal strepen over de detectorbreedte
+  function pattern(u){               // overlapgebied van de twee golfdelen, met strepen
+    const env=Math.exp(-Math.pow(u/0.62,4));
+    const c=Math.cos(Math.PI*FR*u/2);
+    return env*c*c;
+  }
+  function sample(){ for(;;){ const u=Math.random()*2-1; if(Math.random()<pattern(u)) return [u, Math.random()*2-1]; } }
+
+  // ===== detectorcanvas =====
+  const det=$('det'), dctx=det.getContext('2d'); const DS=det.width;
+  let dots=[];
+  function clearDet(){ dctx.fillStyle='#05070a'; dctx.fillRect(0,0,DS,DS); }
+  function drawDot(p,big){ const x=(p[0]+1)/2*DS, y=(p[1]+1)/2*DS; const r=big?7:Math.max(1.2,3.2-Math.log10(dots.length+10)*0.5);
+    dctx.fillStyle=big?'rgba(220,250,255,1)':'rgba(201,243,255,0.9)'; dctx.beginPath(); dctx.arc(x,y,r,0,7); dctx.fill(); }
+  function redrawDet(){ clearDet(); dots.forEach(p=>drawDot(p,false)); detTex.needsUpdate=true; }
+  function addDot(p){ dots.push(p); drawDot(p,false); $('n').textContent=dots.length.toLocaleString('nl-BE'); detTex.needsUpdate=true; }
+
+  // ===== 3D-scène =====
+  const stage=$('stage'), cv=$('gl');
+  const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true}); renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x05070a);
+  const camera=new THREE.PerspectiveCamera(40,16/11,0.5,600);
+  const controls=new THREE.OrbitControls(camera,cv); controls.enableDamping=true;
+  scene.add(new THREE.AmbientLight(0xffffff,.5)); const dl=new THREE.DirectionalLight(0xffffff,.8); dl.position.set(-20,40,30); scene.add(dl);
+  const metal=new THREE.MeshStandardMaterial({color:0x9aa4b2,metalness:.6,roughness:.35});
+  const dark=new THREE.MeshStandardMaterial({color:0x2a3340,metalness:.5,roughness:.5});
+  const glass=new THREE.MeshBasicMaterial({color:0x6f86a0,transparent:true,opacity:.08,side:THREE.DoubleSide,depthWrite:false});
+
+  const XT=-34, XB=0, XD=34;  // tip, biprisma, detector
+  // vacuümkolom
+  const col=new THREE.Mesh(new THREE.CylinderGeometry(6,6,XD-XT+6,48,1,true),glass); col.rotation.z=Math.PI/2; col.position.x=(XT+XD)/2; scene.add(col);
+  // wolfraamtip
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(1.1,4,32),metal); tip.rotation.z=-Math.PI/2; tip.position.x=XT; scene.add(tip);
+  const tipGlow=new THREE.Mesh(new THREE.SphereGeometry(0.35,16,16),new THREE.MeshBasicMaterial({color:0x9be7ff})); tipGlow.position.x=XT+2.05; scene.add(tipGlow);
+  // anode en versnellende ringen
+  const ring=(x,r)=>{const m=new THREE.Mesh(new THREE.TorusGeometry(r,0.35,16,48),dark); m.rotation.y=Math.PI/2; m.position.x=x; scene.add(m);};
+  ring(XT+5,2.6); [XT+10,XT+13,XT+16,XT+19].forEach(x=>ring(x,3.2));
+  // biprisma: draad langs y, twee platen
+  const fil=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,9,12),new THREE.MeshStandardMaterial({color:0xffc27a,emissive:0x553311})); fil.position.set(XB,0,0); scene.add(fil);
+  [-3.4,3.4].forEach(z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(5,9,0.25),metal); p.position.set(XB,0,z); scene.add(p);});
+  // detector met textuur
+  const detTex=new THREE.CanvasTexture(det);
+  const detMesh=new THREE.Mesh(new THREE.PlaneGeometry(12,12),new THREE.MeshBasicMaterial({map:detTex,side:THREE.DoubleSide}));
+  detMesh.rotation.y=-Math.PI/2; detMesh.position.x=XD; scene.add(detMesh);
+  const detFrame=new THREE.Mesh(new THREE.BoxGeometry(0.6,12.8,12.8),dark); detFrame.position.x=XD+0.35; scene.add(detFrame);
+
+  // bundels: een smalle bundel tot het biprisma, daarna twee schuin naar elkaar toe lopende helften
+  const beamMat=new THREE.MeshBasicMaterial({color:0x9be7ff,transparent:true,opacity:.07,depthWrite:false});
+  function tube(a,b,r){ const dir=new THREE.Vector3().subVectors(b,a); const len=dir.length();
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,16,1,true),beamMat.clone());
+    m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize()); scene.add(m); return m; }
+  const bIn=tube(new THREE.Vector3(XT+2,0,0),new THREE.Vector3(XB-2.5,0,0),0.9);
+  const half1=tube(new THREE.Vector3(XB,0,-1.1),new THREE.Vector3(XD,0,4.2),0.9);
+  const half2=tube(new THREE.Vector3(XB,0,1.1),new THREE.Vector3(XD,0,-4.2),0.9);
+  // golfpakket: lichtende schijf die beide helften doorloopt
+  const pulseMat=new THREE.MeshBasicMaterial({color:0xdaf7ff,transparent:true,opacity:0,depthWrite:false});
+  const pIn=new THREE.Mesh(new THREE.SphereGeometry(0.9,20,16),pulseMat); scene.add(pIn);
+  const pA=new THREE.Mesh(new THREE.SphereGeometry(0.9,20,16),pulseMat.clone()); scene.add(pA);
+  const pB=new THREE.Mesh(new THREE.SphereGeometry(0.9,20,16),pulseMat.clone()); scene.add(pB);
+  const flash=new THREE.Mesh(new THREE.SphereGeometry(0.4,12,12),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0})); scene.add(flash);
+
+  // labels
+  const tags=[[$('tBron'),new THREE.Vector3(XT,3.2,-2)],[$('tVers'),new THREE.Vector3(XT+15,4.6,-2)],[$('tBi'),new THREE.Vector3(XB,5.6,-2)],[$('tDet'),new THREE.Vector3(XD,7.6,-4)]];
+  function placeTags(){ const w=cv.clientWidth,h=cv.clientHeight; tags.forEach(([el,p])=>{ const v=p.clone().project(camera); const vis=v.z<1&&Math.abs(v.x)<1.05&&Math.abs(v.y)<1.05; el.hidden=!vis; el.style.left=((v.x+1)/2*w-el.offsetWidth/2)+'px'; el.style.top=((1-v.y)/2*h-14)+'px'; }); }
+  function resize(){ const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); drawFE(); }
+  window.addEventListener('resize',resize);
+  camera.position.set(-26,30,74); controls.target.set(0,0,0);
+
+  // ===== animatie van één elektron =====
+  const speeds=[{t:'1 elektron per 3 s',dt:3,anim:true},{t:'1 elektron per seconde',dt:1,anim:true},{t:'5 per seconde',dt:.2,anim:true},{t:'50 per seconde',dt:.02,anim:false},{t:'500 per seconde',dt:.002,anim:false},{t:'5000 per seconde',dt:.0002,anim:false}];
+  let speed=speeds[1], playing=!reduce, acc=0, flight=null;
+  function setSpeed(i){ speed=speeds[i]; $('speedTxt').textContent=speed.t; }
+  function startFlight(){ flight={t:0,dur:Math.min(.9,speed.dt*0.8),hit:sample()}; }
+  function hitPos3D(p){ return new THREE.Vector3(XD-0.05,-p[1]*6,p[0]*6); }  // detector: u langs z, v langs y
+  function updateFlight(dt){
+    if(!flight){ pIn.material.opacity=pA.material.opacity=pB.material.opacity=0; return; }
+    flight.t+=dt/flight.dur; const s=flight.t;
+    const xIn=XT+2+(XB-XT-2)*Math.min(1,s*2);
+    if(s<.5){ pIn.position.set(xIn,0,0); pIn.material.opacity=.85; pA.material.opacity=pB.material.opacity=0; }
+    else if(s<1){ const f=(s-.5)*2; pIn.material.opacity=0;
+      pA.position.set(XB+(XD-XB)*f,0,-1.1+5.3*f); pB.position.set(XB+(XD-XB)*f,0,1.1-5.3*f);
+      const sc=1+f*1.6; pA.scale.setScalar(sc); pB.scale.setScalar(sc); pA.material.opacity=pB.material.opacity=.55*(1-f*.4); }
+    else { pA.material.opacity=pB.material.opacity=0; pA.scale.setScalar(1); pB.scale.setScalar(1);
+      addDot(flight.hit); flash.position.copy(hitPos3D(flight.hit)); flash.material.opacity=1; flight=null; }
+  }
+
+  function addMany(k){ for(let i=0;i<k;i++){ dots.push(sample()); } redrawDet(); $('n').textContent=dots.length.toLocaleString('nl-BE'); }
+
+  let last=performance.now();
+  function loop(now){ const dt=Math.min(.1,(now-last)/1000); last=now;
+    if(playing){
+      if(speed.anim){ if(!flight){ acc+=dt; if(acc>=speed.dt*0.2){ acc=0; startFlight(); } } updateFlight(dt); }
+      else { acc+=dt; const k=Math.floor(acc/speed.dt); if(k>0){ acc-=k*speed.dt; const m=Math.min(k,4000);
+          if(m>200){ addMany(m); } else { for(let i=0;i<m;i++) addDot(sample()); } } }
+    }
+    flash.material.opacity=Math.max(0,flash.material.opacity-dt*2.5);
+    controls.update(); renderer.render(scene,camera); placeTags(); requestAnimationFrame(loop); }
+
+  // ===== bediening =====
+  $('speed').addEventListener('input',e=>{setSpeed(+e.target.value); flight=null; acc=0;});
+  $('play').addEventListener('click',()=>{ playing=!playing; $('play').textContent=playing?'Pauzeer':'Ga verder'; });
+  $('reset').addEventListener('click',()=>{ dots=[]; flight=null; redrawDet(); $('n').textContent='0'; });
+  document.querySelectorAll('[data-n]').forEach(b=>b.addEventListener('click',()=>{ const target=+b.dataset.n; flight=null;
+    if(target<dots.length){ dots=dots.slice(0,target); redrawDet(); $('n').textContent=dots.length.toLocaleString('nl-BE'); }
+    else addMany(target-dots.length); }));
+
+  // ===== veldemissie: energiediagram =====
+  const W=4.5;                     // uittree-arbeid van wolfraam (eV)
+  const fe=$('fe'), fctx=fe.getContext('2d');
+  function current(E){ return Math.exp(-6.83*Math.pow(W,1.5)/E); }
+  function drawFE(){
+    const E=+$('field').value; const dpr=Math.min(window.devicePixelRatio||1,2); const w=fe.clientWidth,h=fe.clientHeight;
+    fe.width=w*dpr; fe.height=h*dpr; fctx.setTransform(dpr,0,0,dpr,0,0); fctx.clearRect(0,0,w,h);
+    const ml=52,mr=16,mt=16,mb=40,pw=w-ml-mr,ph=h-mt-mb;
+    const xmin=-0.8,xmax=3,ymin=-3,ymax=6;
+    const X=x=>ml+(x-xmin)/(xmax-xmin)*pw, Y=y=>mt+(ymax-y)/(ymax-ymin)*ph;
+    fctx.font='12px "JetBrains Mono", monospace'; fctx.strokeStyle='#253042'; fctx.fillStyle='#98a3b4'; fctx.lineWidth=1;
+    for(let y=-2;y<=6;y+=2){ fctx.beginPath(); fctx.moveTo(ml,Y(y)); fctx.lineTo(ml+pw,Y(y)); fctx.stroke(); fctx.textAlign='right'; fctx.fillText(String(y),ml-8,Y(y)+4); }
+    for(let x=0;x<=3;x+=1){ fctx.beginPath(); fctx.moveTo(X(x),mt); fctx.lineTo(X(x),mt+ph); fctx.stroke(); fctx.textAlign='center'; fctx.fillText(String(x),X(x),mt+ph+16); }
+    fctx.textAlign='center'; fctx.fillText('afstand tot het oppervlak (nm)',ml+pw/2,h-6);
+    fctx.save(); fctx.translate(14,mt+ph/2); fctx.rotate(-Math.PI/2); fctx.fillText('energie (eV)',0,0); fctx.restore();
+    // metaal
+    fctx.fillStyle='rgba(155,231,255,0.10)'; fctx.fillRect(X(xmin),Y(0),X(0)-X(xmin),Y(ymin)-Y(0));
+    fctx.fillStyle='#98a3b4'; fctx.textAlign='left'; fctx.fillText('wolfraam',X(xmin)+6,Y(-2.2));
+    // barrière U(x)=W-E*x
+    const xe=W/E;
+    fctx.beginPath(); fctx.moveTo(X(0),Y(0)); fctx.lineTo(X(0),Y(W)); fctx.lineTo(X(Math.min(xmax,(W-ymin)/E)),Y(W-E*Math.min(xmax,(W-ymin)/E)));
+    fctx.strokeStyle='#ffb15c'; fctx.lineWidth=2.5; fctx.stroke();
+    fctx.beginPath(); fctx.moveTo(X(0),Y(0)); fctx.lineTo(X(0),Y(W)); fctx.lineTo(X(xe),Y(0)); fctx.closePath(); fctx.fillStyle='rgba(255,177,92,0.16)'; fctx.fill();
+    // zonder veld (gestippeld)
+    fctx.setLineDash([5,5]); fctx.beginPath(); fctx.moveTo(X(0),Y(W)); fctx.lineTo(X(xmax),Y(W)); fctx.strokeStyle='#5d6b80'; fctx.lineWidth=1.5; fctx.stroke(); fctx.setLineDash([]);
+    fctx.fillStyle='#98a3b4'; fctx.textAlign='right'; fctx.fillText('zonder veld',X(xmax)-4,Y(W)-6);
+    // Fermi-niveau en golf
+    fctx.strokeStyle='#9be7ff'; fctx.lineWidth=1.5; fctx.beginPath(); fctx.moveTo(X(xmin),Y(0)); fctx.lineTo(X(xmax),Y(0)); fctx.stroke();
+    const k=Math.sqrt(W)*5.1, amp=0.55;
+    fctx.beginPath();
+    for(let i=0;i<=400;i++){ const x=xmin+(xmax-xmin)*i/400; let y;
+      if(x<0) y=amp*Math.cos(k*x*1.4);
+      else if(x<xe){ let kap=0; const n=40; for(let j=0;j<n;j++){ const xx=x*(j+.5)/n; kap+=Math.sqrt(Math.max(0,W-E*xx))*5.12*x/n; } y=amp*Math.exp(-0.3*kap); }
+      else { let kap=0; const n=40; for(let j=0;j<n;j++){ const xx=xe*(j+.5)/n; kap+=Math.sqrt(Math.max(0,W-E*xx))*5.12*xe/n; } y=amp*Math.exp(-0.3*kap)*Math.cos(k*(x-xe)*1.4); }
+      const px=X(x), py=Y(y); i?fctx.lineTo(px,py):fctx.moveTo(px,py); }
+    fctx.strokeStyle='#dff8ff'; fctx.lineWidth=2; fctx.stroke();
+    fctx.fillStyle='#9be7ff'; fctx.textAlign='left'; fctx.fillText('elektron (golf)',X(xmin)+6,Y(0.9));
+    fctx.fillStyle='#ffb15c'; fctx.fillText('barrière',X(0)+6,Y(W)+16);
+    // pijl breedte
+    fctx.strokeStyle='#e8ebf0'; fctx.lineWidth=1; fctx.beginPath(); fctx.moveTo(X(0),Y(-0.6)); fctx.lineTo(X(xe),Y(-0.6)); fctx.stroke();
+    [[X(0),1],[X(xe),-1]].forEach(([px,s])=>{fctx.beginPath(); fctx.moveTo(px,Y(-0.6)); fctx.lineTo(px+6*s,Y(-0.6)-4); fctx.moveTo(px,Y(-0.6)); fctx.lineTo(px+6*s,Y(-0.6)+4); fctx.stroke();});
+    $('fieldTxt').textContent=fmt(E,1)+' V/nm = '+fmt(E,1)+' · 10⁹ V/m';
+    $('bw').textContent=fmt(xe,2)+' nm';
+    const rel=current(E)/current(4);
+    $('cur').textContent= rel>=100? '× '+Math.round(rel).toLocaleString('nl-BE') : rel>=1? '× '+fmt(rel,1) : '× '+rel.toExponential(1).replace('.',',');
+  }
+  $('field').addEventListener('input',drawFE);
+
+  setSpeed(1); clearDet(); resize(); addMany(0);
+  if(reduce){ $('play').textContent='Ga verder'; }
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
