@@ -1,0 +1,1026 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Halfgeleiderlab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Chivo:wght@600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: labotafel — kop, tabstrook, per proef: bedieningsrij, simulatie, meetwaarden + uitleg */
+:root{
+  --bg:#eef2f5; --surface:#ffffff; --ink:#15212c; --muted:#596775; --line:#d3dce4;
+  --electron:#1d5fd1; --hole:#c94d16; --accent:#0e7566;
+  --si:#8794a1; --bond:#bfc9d2; --metal:#9aa6b1;
+  --p-tint:#fbeae1; --n-tint:#e3ecfb; --dep:#f8fafb; --dep2:#d9efe8;
+  --f-display:"Chivo","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e141a; --surface:#151e27; --ink:#e5ecf2; --muted:#93a1ae; --line:#283541;
+    --electron:#6ea4ff; --hole:#ff8b57; --accent:#3cc1a7;
+    --si:#71808e; --bond:#384653; --metal:#5d6975;
+    --p-tint:#2a1d18; --n-tint:#172337; --dep:#10171d; --dep2:#143029; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#151e27; --ink:#e5ecf2; --muted:#93a1ae; --line:#283541;
+  --electron:#6ea4ff; --hole:#ff8b57; --accent:#3cc1a7;
+  --si:#71808e; --bond:#384653; --metal:#5d6975;
+  --p-tint:#2a1d18; --n-tint:#172337; --dep:#10171d; --dep2:#143029; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:6px}
+.eyebrow{margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{margin:0;font-family:var(--f-display);font-weight:800;font-size:clamp(28px,5vw,40px);line-height:1.1;text-wrap:balance;letter-spacing:-.01em}
+.lede{margin:0;max-width:65ch;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{font:inherit;font-weight:700;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tab .n{font-family:var(--f-mono);color:var(--accent);margin-right:6px}
+section.panel{display:flex;flex-direction:column;gap:16px}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1 1 150px}
+.ctl label{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl output{font-family:var(--f-mono);font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:0 1 auto}
+.seg button{font:inherit;font-size:14px;background:var(--surface);color:var(--ink);border:0;padding:8px 12px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--surface);font-weight:700}
+.btns{display:flex;gap:8px}
+.btn{font:inherit;font-size:14px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+canvas{display:block;width:100%;height:auto}
+#cv1{aspect-ratio:760/470}
+#cv2{aspect-ratio:760/448}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.split{grid-template-columns:minmax(0,1fr)}}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.split>.readouts{align-self:start;grid-template-columns:repeat(2,minmax(0,1fr))}
+.ro{background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ro .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.ro .v{font-family:var(--f-mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ro .t{font-size:12px;color:var(--muted)}
+.ro.e .v{color:var(--electron)} .ro.h .v{color:var(--hole)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+.explain{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;min-width:0}
+.explain h3{margin:0 0 6px;font-family:var(--f-display);font-weight:600;font-size:17px}
+.explain p{margin:0 0 8px;max-width:65ch}
+.explain p:last-child{margin-bottom:0}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);padding:0 2px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 12px 10px;min-width:0;display:flex;flex-direction:column;gap:6px}
+figcaption{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+figure svg{width:100%;height:auto;display:block}
+.note{font-size:12px;color:var(--muted);margin:0}
+sub{font-size:.75em}
+.state{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid currentColor;margin-bottom:6px}
+
+.sec3{display:flex;flex-direction:column;gap:16px;margin-top:12px;padding-top:24px;border-top:1px solid var(--line)}
+.sec3 h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:clamp(22px,3.4vw,28px);line-height:1.15;text-wrap:balance}
+.sec3 .lede{margin:0}
+#cv3{aspect-ratio:760/480;touch-action:none;cursor:grab}
+#cv3:active{cursor:grabbing}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+#cv3{aspect-ratio:760/480;touch-action:none;cursor:grab}
+#cv3:active{cursor:grabbing}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.explain .note{font-size:13px;color:var(--muted)}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Fysica · elektronica — 6ICW</p>
+    <h1>Halfgeleiderlab</h1>
+    <p class="lede">Bekijk wat vrije elektronen en gaten doen in zuiver en gedopeerd silicium, wat er gebeurt wanneer je N-Si en P-Si tegen elkaar legt, en hoe het kristalrooster er in 3D uitziet.</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab1" aria-selected="true" aria-controls="panel1"><span class="n">1</span>Gedopeerd silicium</button>
+    <button class="tab" role="tab" id="tab2" aria-selected="false" aria-controls="panel2"><span class="n">2</span>PN-junctie</button>
+    <button class="tab" role="tab" id="tab3" aria-selected="false" aria-controls="panel3"><span class="n">3</span>Diamantrooster (3D)</button>
+  </nav>
+
+  <!-- ============ PANEEL 1 ============ -->
+  <section class="panel" id="panel1" role="tabpanel" aria-labelledby="tab1">
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Soort silicium" id="modeSeg">
+        <button role="radio" data-mode="i" aria-checked="false">Intrinsiek Si</button>
+        <button role="radio" data-mode="n" aria-checked="true">n-Si (fosfor)</button>
+        <button role="radio" data-mode="p" aria-checked="false">p-Si (boor)</button>
+      </div>
+      <div class="ctl"><label for="dopN">Doperingsatomen <output id="dopNo">1</output></label><input type="range" id="dopN" min="1" max="2" step="1" value="1"></div>
+      <div class="ctl"><label for="temp">Temperatuur <output id="tempo">300 K</output></label><input type="range" id="temp" min="250" max="500" step="5" value="300"></div>
+      <div class="ctl"><label for="u1">Spanning U <output id="u1o">0,0 V</output></label><input type="range" id="u1" min="-5" max="5" step="0.5" value="0"></div>
+      <div class="ctl"><label for="sp1">Tempo <output id="sp1o">1×</output></label><input type="range" id="sp1" min="0" max="8" step="1" value="5"></div>
+      <div class="btns"><button class="btn" id="pause1">Pauze</button><button class="btn" id="reset1">Opnieuw</button></div>
+    </div>
+    <div class="stage"><canvas id="cv1" width="760" height="470" aria-label="Siliciumrooster met vrije elektronen en gaten"></canvas></div>
+    <div class="legend">
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" style="fill:var(--electron)"/><rect x="4" y="6.2" width="6" height="1.6" style="fill:var(--surface)"/></svg>vrij elektron</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" style="fill:none;stroke:var(--hole);stroke-width:2"/></svg>gat (ontbrekend bindingselektron)</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="3" style="fill:var(--muted)"/></svg>gebonden elektron</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" style="fill:none;stroke:var(--accent);stroke-width:1.5"/></svg>flits: thermische generatie of recombinatie</span>
+    </div>
+    <div class="split">
+      <div class="readouts" id="ro1">
+        <div class="ro e"><span class="k">Vrije elektronen</span><span class="v" id="r1e">0</span><span class="t" id="r1et">–</span></div>
+        <div class="ro h"><span class="k">Gaten</span><span class="v" id="r1h">0</span><span class="t" id="r1ht">–</span></div>
+        <div class="ro"><span class="k">Vaste ionen</span><span class="v" id="r1i">0</span><span class="t">bewegen niet, geleiden niet</span></div>
+        <div class="ro"><span class="k">Stroom (relatief)</span><span class="v" id="r1j">0</span><div class="bar"><i id="r1jb"></i></div></div>
+      </div>
+      <div class="explain" id="explain1"></div>
+    </div>
+  </section>
+
+  <!-- ============ PANEEL 2 ============ -->
+  <section class="panel" id="panel2" role="tabpanel" aria-labelledby="tab2" hidden>
+    <div class="controls">
+      <div class="ctl"><label for="vs"><span>Bronspanning V<sub>s</sub></span> <output id="vso">0,00 V</output></label><input type="range" id="vs" min="-5" max="5" step="0.05" value="0"></div>
+      <div class="ctl"><label for="rl"><span>Weerstand R<sub>L</sub></span> <output id="rlo">1 kΩ</output></label><input type="range" id="rl" min="0" max="6" step="1" value="3"></div>
+      <div class="ctl"><label for="sp2">Tempo <output id="sp2o">1×</output></label><input type="range" id="sp2" min="0" max="8" step="1" value="5"></div>
+      <div class="btns"><button class="btn" id="pause2">Pauze</button><button class="btn" id="reset2">Opnieuw</button></div>
+    </div>
+    <div class="stage"><canvas id="cv2" width="760" height="448" aria-label="PN-junctie met verarmingslaag, elektronen en gaten"></canvas></div>
+    <div class="legend">
+      <span><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" style="fill:var(--surface);stroke:var(--ink);stroke-width:1"/><rect x="4.5" y="7.3" width="7" height="1.4" style="fill:var(--ink)"/><rect x="7.3" y="4.5" width="1.4" height="7" style="fill:var(--ink)"/></svg>P-ion (vast)</span>
+      <span><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" style="fill:var(--surface);stroke:var(--ink);stroke-width:1"/><rect x="4.5" y="7.3" width="7" height="1.4" style="fill:var(--ink)"/></svg>B-ion (vast)</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" style="fill:var(--electron)"/><rect x="4" y="6.2" width="6" height="1.6" style="fill:var(--surface)"/></svg>vrij elektron</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" style="fill:var(--surface);stroke:var(--hole);stroke-width:2"/><rect x="4.5" y="6.3" width="5" height="1.4" style="fill:var(--hole)"/><rect x="6.3" y="4.5" width="1.4" height="5" style="fill:var(--hole)"/></svg>gat</span>
+      <span><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="0" width="18" height="12" style="fill:var(--dep2)"/></svg>verarmingslaag</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" style="fill:none;stroke:var(--accent);stroke-width:1.5"/></svg>flits: recombinatie of thermische generatie</span>
+    </div>
+    <div class="split">
+      <figure>
+        <figcaption>Schakeling</figcaption>
+        <svg id="schem" viewBox="0 0 360 255" role="img" aria-label="Schakeling met spanningsbron, weerstand en diode"></svg>
+      </figure>
+      <figure>
+        <figcaption>Diodekarakteristiek met belastingslijn</figcaption>
+        <svg id="iu" viewBox="0 0 380 250" role="img" aria-label="Diodekarakteristiek met werkpunt"></svg>
+        <p class="note">Werkpunt = snijpunt van de karakteristiek I<sub>D</sub> = I<sub>S</sub>(e<sup>V<sub>D</sub>/nV<sub>T</sub></sup> − 1) en de belastingslijn I<sub>D</sub> = (V<sub>s</sub> − V<sub>D</sub>)/R<sub>L</sub>. Doorslag bij sterk inverse spanning zit niet in het model.</p>
+      </figure>
+    </div>
+    <div class="readouts">
+      <div class="ro"><span class="k">V<sub>D</sub> (diode)</span><span class="v" id="r2vd">0</span></div>
+      <div class="ro"><span class="k">I<sub>D</sub></span><span class="v" id="r2i">0</span></div>
+      <div class="ro"><span class="k">V<sub>RL</sub> (weerstand)</span><span class="v" id="r2vr">0</span></div>
+      <div class="ro"><span class="k">Breedte verarmingslaag</span><span class="v" id="r2w">0</span><span class="t">t.o.v. niet gepolariseerd</span></div>
+    </div>
+    <div class="explain" id="explain2"></div>
+  </section>
+
+  <!-- ============ PANEEL 3 ============ -->
+  <section class="panel" id="panel3" role="tabpanel" aria-labelledby="tab3" hidden>
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Weergave" id="viewSeg">
+        <button role="radio" data-v="tet" aria-checked="false">Eén tetraëder</button>
+        <button role="radio" data-v="cell" aria-checked="true">Eenheidscel</button>
+        <button role="radio" data-v="cell2" aria-checked="false">2 × 2 × 2 cellen</button>
+        <button role="radio" data-v="zoom" aria-checked="false" id="zoomBtn" hidden>Uitgezoomd (wolk op schaal)</button>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Centraal atoom" id="cenSeg">
+        <button role="radio" data-c="Si" aria-checked="true">Si</button>
+        <button role="radio" data-c="P" aria-checked="false">P</button>
+        <button role="radio" data-c="B" aria-checked="false">B</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="showE" checked> bindingselektronen</label>
+      <div class="btns"><button class="btn" id="rot3">Draaien: aan</button><button class="btn" id="home3">Beeld herstellen</button></div>
+    </div>
+    <div class="stage"><canvas id="cv3" width="760" height="480" aria-label="Driedimensionaal siliciumrooster met tetraëderstructuur"></canvas></div>
+    <div class="legend">
+      <span>Sleep om te draaien.</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" style="fill:var(--si)"/></svg>Si-atoom</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" style="fill:var(--accent)"/></svg>centraal atoom van de gemarkeerde tetraëder</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="3" style="fill:var(--electron)"/></svg>valentie-elektron</span>
+      <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" style="fill:none;stroke:var(--hole);stroke-width:2"/></svg>gat</span>
+      <span><svg width="22" height="14" viewBox="0 0 22 14"><line x1="1" y1="7" x2="21" y2="7" style="stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 3"/></svg>ribben van de tetraëder</span>
+    </div>
+    <div class="explain" id="explain3"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const C = {};
+const TOK = ['bg','surface','ink','muted','line','electron','hole','accent','si','bond','metal','p-tint','n-tint','dep','dep2'];
+function readColors(){ const cs = getComputedStyle(document.documentElement); TOK.forEach(k => C[k] = cs.getPropertyValue('--'+k).trim()); }
+readColors();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const nl = (v, d) => v.toFixed(d).replace('.', ',').replace(/^-/, '−');
+const rnd = (a, b) => a + Math.random() * (b - a);
+const expRand = rate => -Math.log(1 - Math.random()) / rate;
+const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+
+function fitCanvas(cv, W, H){
+  const w = cv.getBoundingClientRect().width || W;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+  return ctx;
+}
+function cArrow(ctx, x1, y1, x2, y2, col, w = 2, hs = 8){
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a)*hs*.8, y2 - Math.sin(a)*hs*.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - hs*Math.cos(a - .42), y2 - hs*Math.sin(a - .42));
+  ctx.lineTo(x2 - hs*Math.cos(a + .42), y2 - hs*Math.sin(a + .42)); ctx.closePath(); ctx.fill();
+}
+function alpha(col, a){ ctxTmp.fillStyle = col; const c = ctxTmp.fillStyle; if (c[0] === '#'){ const n = parseInt(c.slice(1), 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; } return c.replace(/rgba?\(([^)]+)\)/, (m, g) => `rgba(${g.split(',').slice(0,3).join(',')},${a})`); }
+const ctxTmp = document.createElement('canvas').getContext('2d');
+
+/* ================= SIMULATIE 1: rooster ================= */
+const S1 = { W:760, H:470, x0:76, x1:684, y0:112, y1:432, cols:6, rows:4 };
+const cv1 = $('#cv1'); let ctx1 = fitCanvas(cv1, S1.W, S1.H);
+let mode = 'n', s1, paused1 = reduce;
+const u1 = $('#u1'), temp = $('#temp'), dopN = $('#dopN');
+
+const SO = 11;
+function slot(b){ return b.h ? { x: b.x - SO, y: b.y } : { x: b.x, y: b.y - SO }; }
+
+function init1(){
+  const { x0, x1, y0, y1, cols, rows } = S1;
+  const sx = (x1 - x0) / cols, sy = (y1 - y0) / rows;
+  const atoms = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) atoms.push({ c, r, x: x0 + sx*(c + .5), y: y0 + sy*(r + .5), type: 'Si' });
+  const idx = (c, r) => r*cols + c;
+  const bonds = [];
+  const mk = (a, b, h) => ({ a, b, h, x: (atoms[a].x + atoms[b].x)/2, y: (atoms[a].y + atoms[b].y)/2, hole: false, nb: [] });
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++){
+    if (c < cols - 1) bonds.push(mk(idx(c, r), idx(c + 1, r), true));
+    if (r < rows - 1) bonds.push(mk(idx(c, r), idx(c, r + 1), false));
+  }
+  const byAtom = atoms.map(() => []);
+  bonds.forEach((b, i) => { byAtom[b.a].push(i); byAtom[b.b].push(i); });
+  bonds.forEach((b, i) => {
+    b.nb = [...new Set([...byAtom[b.a], ...byAtom[b.b]])].filter(j => j !== i);
+    const cmin = Math.min(atoms[b.a].c, atoms[b.b].c), cmax = Math.max(atoms[b.a].c, atoms[b.b].c);
+    b.left = cmin === 0; b.right = cmax === cols - 1;
+  });
+  s1 = { sx, sy, atoms, bonds, byAtom, electrons: [], holes: [], flashes: [], ions: 0 };
+  if (mode !== 'i'){
+    const N = +dopN.value, chosen = [];
+    let tries = 0;
+    while (chosen.length < N && tries++ < 500){
+      const c = 1 + Math.floor(Math.random()*(cols - 2)), r = Math.floor(Math.random()*rows);
+      if (chosen.some(a => Math.abs(a.c - c) + Math.abs(a.r - r) < 3)) continue;
+      chosen.push(atoms[idx(c, r)]);
+    }
+    chosen.forEach(a => {
+      a.type = mode === 'n' ? 'P' : 'B';
+      if (mode === 'n') addElectron(a.x + rnd(-30, 30), a.y + rnd(-30, 30), 0);
+      else {
+        const opts = s1.byAtom[atoms.indexOf(a)].filter(j => !s1.bonds[j].hole);
+        addHole(opts[Math.floor(Math.random()*opts.length)]);
+      }
+    });
+    s1.ions = chosen.length;
+  }
+}
+function addElectron(x, y, cool){ const a = Math.random()*Math.PI*2; s1.electrons.push({ x, y, vx: Math.cos(a)*40, vy: Math.sin(a)*40, cool, target: null }); }
+function addHole(bi){ s1.bonds[bi].hole = true; const h = { b: bi, prev: null, t: 1, wait: expRand(1), locked: false }; s1.holes.push(h); return h; }
+function removeHole(h){ s1.bonds[h.b].hole = false; const i = s1.holes.indexOf(h); if (i >= 0) s1.holes.splice(i, 1); }
+function flash(arr, x, y){ arr.push({ x, y, t: 0 }); }
+
+function hop(h, U){
+  const s = s1, b = s.bonds[h.b], beta = 0.4*U;
+  const cand = b.nb.filter(j => !s.bonds[j].hole).map(j => ({ j, dx: s.bonds[j].x - b.x }));
+  if (b.left) cand.push({ exit: 'L', dx: -s.sx });
+  if (b.right) cand.push({ exit: 'R', dx: s.sx });
+  if (!cand.length) return;
+  const w = cand.map(c => Math.exp(beta * c.dx / s.sx));
+  let tot = w.reduce((a, b) => a + b, 0), r = Math.random()*tot, k = 0;
+  while (k < w.length - 1 && (r -= w[k]) > 0) k++;
+  const c = cand[k];
+  if (c.exit){
+    const side = c.exit === 'L' ? 'right' : 'left';
+    const opts = s.bonds.map((bb, i) => i).filter(i => s.bonds[i][side] && !s.bonds[i].hole);
+    if (!opts.length) return;
+    b.hole = false; h.b = opts[Math.floor(Math.random()*opts.length)]; s.bonds[h.b].hole = true; h.prev = null; h.t = 1;
+  } else {
+    b.hole = false; h.prev = h.b; h.b = c.j; s.bonds[c.j].hole = true; h.t = 0;
+  }
+}
+
+function step1(dt){
+  const s = s1, U = +u1.value, T = +temp.value, tf = Math.sqrt(T/300);
+  const { x0, x1, y0, y1 } = S1;
+  const vth = 70*tf, vd = -24*U;
+  // thermische generatie van elektron-gatparen
+  const G = 0.3*Math.exp(2600*(1/300 - 1/T));
+  if (Math.random() < G*dt){
+    const free = s.bonds.map((b, i) => i).filter(i => !s.bonds[i].hole);
+    const bi = free[Math.floor(Math.random()*free.length)];
+    addHole(bi); const p = slot(s.bonds[bi]); addElectron(p.x, p.y, 0.8); flash(s.flashes, p.x, p.y);
+  }
+  // recombinatie: snelheid evenredig met n·p
+  const freeE = s.electrons.filter(e => !e.target && e.cool <= 0), freeH = s.holes.filter(h => !h.locked && h.t >= 1);
+  if (freeE.length && freeH.length && Math.random() < 0.15*freeE.length*freeH.length*dt){
+    const h = freeH[Math.floor(Math.random()*freeH.length)], p = slot(s.bonds[h.b]);
+    let best = null, bd = 1e9;
+    freeE.forEach(e => { const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < bd){ bd = d; best = e; } });
+    best.target = h; h.locked = true;
+  }
+  for (let i = s.electrons.length - 1; i >= 0; i--){
+    const e = s.electrons[i];
+    if (e.target){
+      const p = slot(s.bonds[e.target.b]), dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx, dy);
+      if (d < 4){ removeHole(e.target); s.electrons.splice(i, 1); flash(s.flashes, p.x, p.y); continue; }
+      const f = Math.min(1, 170*dt/d); e.x += dx*f; e.y += dy*f; continue;
+    }
+    e.cool -= dt;
+    if (Math.random() < 3*dt){ const a = Math.random()*Math.PI*2, sp = vth*(.5 + Math.random()); e.vx = Math.cos(a)*sp; e.vy = Math.sin(a)*sp; }
+    e.x += (e.vx + vd)*dt; e.y += e.vy*dt;
+    if (e.y < y0 + 9){ e.y = y0 + 9; e.vy = Math.abs(e.vy); }
+    if (e.y > y1 - 9){ e.y = y1 - 9; e.vy = -Math.abs(e.vy); }
+    if (e.x < x0) e.x += x1 - x0;
+    if (e.x > x1) e.x -= x1 - x0;
+  }
+  for (const h of s.holes){
+    if (h.t < 1) h.t = Math.min(1, h.t + dt/0.22);
+    if (h.locked) continue;
+    h.wait -= dt;
+    if (h.wait <= 0 && h.t >= 1){ hop(h, U); h.wait = expRand(0.8*tf + 0.2*Math.abs(U)); }
+  }
+  s.flashes.forEach(f => f.t += dt); s.flashes = s.flashes.filter(f => f.t < 0.6);
+}
+
+function draw1(){
+  const ctx = ctx1, s = s1, { W, H, x0, x1, y0, y1 } = S1, U = +u1.value;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = C.surface; ctx.fillRect(0, 0, W, H);
+  // kristal
+  ctx.fillStyle = mode === 'n' ? C['n-tint'] : mode === 'p' ? C['p-tint'] : C.dep;
+  ctx.fillRect(x0 - 8, y0 - 8, x1 - x0 + 16, y1 - y0 + 16);
+  // elektroden en draden
+  ctx.fillStyle = C.metal;
+  ctx.fillRect(x0 - 24, y0 - 12, 14, y1 - y0 + 24); ctx.fillRect(x1 + 10, y0 - 12, 14, y1 - y0 + 24);
+  const wy = 52, sxC = 380, r = 18, lx = x0 - 17, rx = x1 + 17;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(lx, y0 - 12); ctx.lineTo(lx, wy); ctx.lineTo(sxC - r, wy); ctx.moveTo(sxC + r, wy); ctx.lineTo(rx, wy); ctx.lineTo(rx, y0 - 12); ctx.stroke();
+  ctx.fillStyle = C.surface; ctx.beginPath(); ctx.arc(sxC, wy, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sxC - r, wy); ctx.lineTo(sxC + r, wy); ctx.stroke();
+  ctx.font = '600 13px ' + getComputedStyle(document.body).fontFamily; ctx.textBaseline = 'middle';
+  if (Math.abs(U) > 0.01){
+    const plusL = U > 0;
+    ctx.fillStyle = C.ink; ctx.font = '700 16px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(plusL ? '+' : '−', sxC - 30, wy - 14); ctx.fillText(plusL ? '−' : '+', sxC + 30, wy - 14);
+    // elektrodetekens
+    ctx.fillText(plusL ? '+' : '−', x0 - 17, y1 + 26); ctx.fillText(plusL ? '−' : '+', x1 + 17, y1 + 26);
+    // spanningspijl bron: pijlpunt aan de +
+    cArrow(ctx, plusL ? sxC + 22 : sxC - 22, 20, plusL ? sxC - 22 : sxC + 22, 20, C.ink, 1.6, 8);
+    ctx.font = '600 13px system-ui'; ctx.textAlign = 'left'; ctx.fillStyle = C.ink;
+    ctx.fillText('U = ' + nl(Math.abs(U), 1) + ' V', sxC + 34, 20);
+    // stroompijlen (conventioneel) op de draden
+    const dir = plusL ? -1 : 1;
+    [ (lx + sxC - r)/2, (sxC + r + rx)/2 ].forEach(cx => cArrow(ctx, cx - dir*10, wy, cx + dir*10, wy, C.accent, 2.5, 10));
+    ctx.fillStyle = C.accent; ctx.textAlign = 'center'; ctx.fillText('I', (lx + sxC - r)/2, wy + 16); ctx.fillText('I', (sxC + r + rx)/2, wy + 16);
+    // E-veld in het kristal
+    ctx.fillStyle = C.muted; ctx.fillText('E', 380, 86);
+    cArrow(ctx, 380 - 46*(plusL?1:-1), 86, 380 - 14*(plusL?1:-1), 86, C.muted, 1.5, 7);
+    cArrow(ctx, 380 + 14*(plusL?1:-1), 86, 380 + 46*(plusL?1:-1), 86, C.muted, 1.5, 7);
+    // spanningspijl over kristal: pijlpunt aan de kant waar de stroom binnenkomt (+)
+    cArrow(ctx, plusL ? x1 - 60 : x0 + 60, y1 + 26, plusL ? x0 + 60 : x1 - 60, y1 + 26, C.ink, 1.4, 7);
+  } else {
+    ctx.fillStyle = C.muted; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui';
+    ctx.fillText('U = 0 V: enkel thermische beweging', 380, 20);
+  }
+  // bindingen
+  ctx.strokeStyle = C.bond; ctx.lineWidth = 4;
+  s.bonds.forEach(b => { const A = s.atoms[b.a], B = s.atoms[b.b]; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); });
+  // bindingselektronen
+  const anim = new Map(); s.holes.forEach(h => { if (h.prev !== null && h.t < 1) anim.set(h.prev, h); });
+  ctx.fillStyle = C.muted;
+  s.bonds.forEach((b, i) => {
+    const p0 = slot(b), p1 = b.h ? { x: b.x + SO, y: b.y } : { x: b.x, y: b.y + SO };
+    ctx.beginPath(); ctx.arc(p1.x, p1.y, 3.6, 0, Math.PI*2); ctx.fill();
+    if (!b.hole && !anim.has(i)){ ctx.beginPath(); ctx.arc(p0.x, p0.y, 3.6, 0, Math.PI*2); ctx.fill(); }
+  });
+  // atomen
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  s.atoms.forEach(a => {
+    const dop = a.type !== 'Si';
+    ctx.fillStyle = C.surface; ctx.strokeStyle = dop ? C.ink : C.si; ctx.lineWidth = dop ? 2 : 1.4;
+    ctx.beginPath(); ctx.arc(a.x, a.y, 20, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = dop ? C.ink : C.si; ctx.font = (dop ? '700 16px ' : '600 14px ') + 'system-ui';
+    ctx.fillText(a.type, a.x, a.y + .5);
+    if (dop){
+      const pos = a.type === 'P', col = pos ? C.hole : C.electron;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(a.x + 18, a.y - 18, 9, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = C.surface; ctx.font = '700 14px system-ui'; ctx.fillText(pos ? '+' : '−', a.x + 18, a.y - 18.5);
+    }
+  });
+  // gaten + springend elektron
+  s.holes.forEach(h => {
+    let p = slot(s.bonds[h.b]);
+    if (h.prev !== null && h.t < 1){
+      const q = slot(s.bonds[h.prev]), e = ease(h.t);
+      ctx.fillStyle = C.electron; ctx.beginPath(); ctx.arc(p.x + (q.x - p.x)*e, p.y + (q.y - p.y)*e, 4.6, 0, Math.PI*2); ctx.fill();
+      p = { x: q.x + (p.x - q.x)*e, y: q.y + (p.y - q.y)*e };
+    }
+    ctx.strokeStyle = C.hole; ctx.lineWidth = 2.2; ctx.fillStyle = C.surface;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 7.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  });
+  // vrije elektronen
+  s.electrons.forEach(e => {
+    ctx.fillStyle = C.electron; ctx.beginPath(); ctx.arc(e.x, e.y, 8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = C.surface; ctx.fillRect(e.x - 4.4, e.y - 1.1, 8.8, 2.2);
+  });
+  // flitsen
+  s.flashes.forEach(f => { ctx.strokeStyle = alpha(C.accent, 1 - f.t/0.6); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(f.x, f.y, 8 + f.t*36, 0, Math.PI*2); ctx.stroke(); });
+}
+
+const EX1 = {
+  i: `<h3>Intrinsiek silicium</h3><p>Elk Si-atoom heeft 4 valentie-elektronen. Door ze te delen met zijn 4 buren (covalente binding) beschikt elk atoom over 8 elektronen in de buitenste schil. Bij het absolute nulpunt zijn er geen vrije elektronen.</p><p>Bij hogere temperatuur maakt af en toe een valentie-elektron zich vrij. Op zijn plaats blijft een gat achter: er ontstaat een (elektron, gat)-paar. Dat heet <b>thermische generatie</b>. Een vrij elektron kan ook terug in een gat vallen: <b>recombinatie</b>. Verhoog de temperatuur: er ontstaan meer paren en de geleiding stijgt.</p>`,
+  n: `<h3>n-silicium (gedopeerd met fosfor)</h3><p>Fosfor (groep 15) heeft 5 valentie-elektronen. Vier ervan gaan in de bindingen met de Si-buren. Het vijfde is overtollig en is bij kamertemperatuur al vrij. Het P-atoom blijft achter als een vast positief ion (P⁺).</p><p>Vrije elektronen zijn hier de <b>meerderheidsladingsdragers</b>. Gaten ontstaan alleen door thermische generatie. Het zijn <b>minderheidsladingsdragers</b>, en ze recombineren snel met een van de vrije elektronen.</p>`,
+  p: `<h3>p-silicium (gedopeerd met boor)</h3><p>Boor (groep 13) heeft maar 3 valentie-elektronen. In één binding ontbreekt daardoor een elektron: een gat. Een gebonden elektron uit een naburige binding kan naar dat gat springen; op de plaats die het verlaat, ontstaat een nieuw gat. Zo verplaatst het gat zich. Het B-atoom blijft achter als een vast negatief ion (B⁻).</p><p>Gaten zijn hier de <b>meerderheidsladingsdragers</b>. De mobiliteit van een gat is lager dan die van een vrij elektron.</p>`
+};
+const EXU = `<p>Met een spanning worden de vrije elektronen aangetrokken door de pluspool: de <b>elektronenstroom</b>. Gebonden elektronen springen naar een naburig gat, waardoor de gaten naar de minpool schuiven: de <b>gatenstroom</b>, tegengesteld aan de elektronenstroom. Samen vormen ze de conventionele stroom I van + naar − door het kristal.</p><p class="note">Niet op schaal: in werkelijkheid is er ongeveer 1 doperingsatoom per 10<sup>6</sup> Si-atomen, en bij kamertemperatuur zijn er nog veel minder thermisch gegenereerde paren.</p>`;
+
+let statT = 0;
+function stats1(){
+  const s = s1, nE = s.electrons.length, nH = s.holes.length, U = +u1.value;
+  $('#r1e').textContent = nE; $('#r1h').textContent = nH;
+  $('#r1et').textContent = mode === 'n' ? 'meerderheid' : mode === 'p' ? 'minderheid' : 'door thermische generatie';
+  $('#r1ht').textContent = mode === 'p' ? 'meerderheid' : mode === 'n' ? 'minderheid' : 'door thermische generatie';
+  $('#r1i').textContent = mode === 'i' ? '–' : s.ions + ' × ' + (mode === 'n' ? 'P⁺' : 'B⁻');
+  const J = (nE + 0.4*nH)*Math.abs(U);
+  $('#r1j').textContent = nl(J, 1); $('#r1jb').style.width = Math.min(100, J/30*100) + '%';
+}
+function syncLabels1(){
+  $('#dopNo').textContent = dopN.value; $('#tempo').textContent = temp.value + ' K';
+  $('#u1o').textContent = nl(+u1.value, 1) + ' V';
+  dopN.disabled = mode === 'i';
+  $('#explain1').innerHTML = EX1[mode] + EXU;
+}
+$('#modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  mode = b.dataset.mode;
+  document.querySelectorAll('#modeSeg button').forEach(x => x.setAttribute('aria-checked', x === b));
+  syncLabels1(); init1(); stats1(); draw1();
+});
+dopN.addEventListener('input', () => { syncLabels1(); init1(); stats1(); draw1(); });
+[temp, u1].forEach(el => el.addEventListener('input', () => { syncLabels1(); if (paused1) draw1(); }));
+$('#reset1').addEventListener('click', () => { init1(); stats1(); draw1(); });
+const p1b = $('#pause1');
+p1b.addEventListener('click', () => { paused1 = !paused1; p1b.textContent = paused1 ? 'Verder' : 'Pauze'; });
+
+/* ================= SIMULATIE 2: PN-junctie (N links, P rechts) ================= */
+const S2 = { W:760, H:448, xc:46, xa:714, xj:380, s:55.67, y0:70 };
+S2.y1 = S2.y0 + 4.2*S2.s;
+const ionY = r => S2.y0 + (r + .35)*S2.s, laneY = r => S2.y0 + (r + .85)*S2.s;
+const cv2 = $('#cv2'); let ctx2 = fitCanvas(cv2, S2.W, S2.H);
+const vsI = $('#vs'), rlI = $('#rl');
+const RV = [100, 220, 470, 1000, 2200, 4700, 10000];
+const IS = 1e-12, NVT = 1.2*0.02585, VBI = 0.8;
+let s2, paused2 = reduce, model = { Vd: 0, I: 0 };
+
+function solve(Vs, R){
+  let lo = -12, hi = 1.5;
+  for (let i = 0; i < 90; i++){ const m = (lo + hi)/2; const f = m + R*IS*(Math.exp(m/NVT) - 1) - Vs; if (f > 0) hi = m; else lo = m; }
+  const Vd = (lo + hi)/2; return { Vd, I: IS*(Math.exp(Vd/NVT) - 1) };
+}
+// breedte van de verarmingslaag per zijde, in roosterkolommen (1 kolom in evenwicht)
+const wTarget = Vd => Math.min(3.4, Math.max(0.12, Math.sqrt(Math.max(0.02, VBI - Vd)/VBI)));
+
+function init2(){
+  const w = wTarget(model.Vd);
+  s2 = { w, ph: { e: [0,0,0,0], h: [0,0,0,0] }, cnt: { e: [0,0,0,0], h: [0,0,0,0] },
+         hid: { e: new Set(), h: new Set() }, movers: [], flashes: [], t: 0, v: 0 };
+}
+const edges = () => ({ eN: S2.xj - s2.w*S2.s, eP: S2.xj + s2.w*S2.s });
+// positie van ladingsdrager m in baan l (elektronen in N, gaten in P)
+function cx(type, m, l){
+  const { eN, eP } = edges(), ph = s2.ph[type][l];
+  return type === 'e' ? eN - (m + .5 - ph)*S2.s : eP + (m + .5 - ph)*S2.s;
+}
+function wob(m, l){ const t = s2.t; return { dx: 3*Math.sin(2.1*t + m*1.7 + l), dy: 4*Math.sin(1.7*t + m*2.3 + l*1.3) }; }
+function visibleCarriers(type, l){
+  const out = [], first = Math.floor(s2.ph[type][l] + .5);
+  for (let m = first; m < first + 12; m++){
+    const x = cx(type, m, l);
+    if (type === 'e' ? x < S2.xc : x > S2.xa) break;
+    if (!s2.hid[type].has(m + ':' + l)) out.push({ m, x });
+  }
+  return out;
+}
+
+function step2(dt){
+  const s = s2, { Vd, I } = model, Vs = +vsI.value, sp = S2.s;
+  s.t += dt;
+  s.w += (wTarget(Vd) - s.w)*Math.min(1, dt*2.5);
+  const { eN, eP } = edges();
+  const Ima = I*1e3;
+  const v = Vs > 0 && Ima > 0.002 ? 0.12 + 1.4*Ima/(Ima + 3) : 0;   // roosterplaatsen per seconde
+  s.v = v;
+  if (v === 0){ s.hid.e.clear(); s.hid.h.clear(); }
+  ['e', 'h'].forEach((type, k) => {
+    for (let l = 0; l < 4; l++){
+      const ph = s.ph[type];
+      if (v > 0) ph[l] += v*(1 + 0.2*Math.sin(0.9*s.t + 1.7*l + 2*k))*dt;
+      else ph[l] += (Math.round(ph[l]) - ph[l])*Math.min(1, dt*2);
+      const C = Math.floor(ph[l] + .5);
+      for (let m = s.cnt[type][l]; m < C; m++){
+        const key = m + ':' + l;
+        if (s.hid[type].has(key)){ s.hid[type].delete(key); continue; }
+        // deze ladingsdrager steekt de junctie over
+        s.movers.push({ type, l, m, x: type === 'e' ? eN : eP, y: laneY(l),
+          dir: type === 'e' ? 1 : -1, tx: type === 'e' ? eP + rnd(.25, 1.0)*sp : eN - rnd(.25, 1.0)*sp,
+          speed: Math.max(70, 2.5*v*sp), kind: 'rec' });
+      }
+      s.cnt[type][l] = C;
+    }
+  });
+  // evenwicht en invers: thermische generatie in de verarmingslaag, en af en toe diffusie over de junctie
+  if (Vs <= 0.05 && eP - eN > 20 && Math.random() < 0.3*dt){
+    const x = rnd(eN + 8, eP - 8), l = Math.floor(Math.random()*4), y = laneY(l);
+    s.movers.push({ type: 'e', x, y, dir: -1, tx: eN, speed: 90, kind: 'join' });
+    s.movers.push({ type: 'h', x, y, dir: 1, tx: eP, speed: 90, kind: 'join' });
+    flash(s.flashes, x, y);
+  }
+  if (Vs >= -0.05 && v === 0 && Math.random() < 0.3*dt){
+    const l = Math.floor(Math.random()*4), e = Math.random() < .5;
+    s.movers.push(e ? { type: 'e', x: eN, y: laneY(l), dir: 1, tx: eP + rnd(.2, .7)*sp, speed: 80, kind: 'fade' }
+                    : { type: 'h', x: eP, y: laneY(l), dir: -1, tx: eN - rnd(.2, .7)*sp, speed: 80, kind: 'fade' });
+  }
+  for (const mv of s.movers){
+    mv.x += mv.dir*mv.speed*dt;
+    if ((mv.dir > 0 && mv.x >= mv.tx) || (mv.dir < 0 && mv.x <= mv.tx)){
+      mv.done = true;
+      if (mv.kind !== 'join') flash(s.flashes, mv.x, mv.y);
+      if (mv.kind === 'rec'){
+        // recombinatie met de dichtstbijzijnde meerderheidsladingsdrager aan deze kant
+        const other = mv.type === 'e' ? 'h' : 'e';
+        let best = null, bd = 1.1*sp;
+        visibleCarriers(other, mv.l).forEach(c => { const d = Math.abs(c.x - mv.x); if (d < bd){ bd = d; best = c; } });
+        if (best) s.hid[other].add(best.m + ':' + mv.l);
+      }
+    }
+  }
+  s.movers = s.movers.filter(m => !m.done);
+  s.flashes.forEach(f => f.t += dt); s.flashes = s.flashes.filter(f => f.t < 0.6);
+}
+
+function drawCarrier(ctx, type, x, y, a = 1){
+  ctx.globalAlpha = a;
+  if (type === 'e'){
+    ctx.fillStyle = C.electron; ctx.beginPath(); ctx.arc(x, y, 6.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = C.surface; ctx.fillRect(x - 3.5, y - 1, 7, 2);
+  } else {
+    ctx.fillStyle = C.surface; ctx.strokeStyle = C.hole; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(x, y, 6.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.hole; ctx.fillRect(x - 3.5, y - 1, 7, 2); ctx.fillRect(x - 1, y - 3.5, 2, 7);
+  }
+  ctx.globalAlpha = 1;
+}
+function bigArrow(ctx, x1, x2, y, h, col, label, a){
+  const dir = Math.sign(x2 - x1), head = 26;
+  ctx.globalAlpha = 0.22*a; ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.moveTo(x1, y - h/2); ctx.lineTo(x2 - dir*head, y - h/2); ctx.lineTo(x2 - dir*head, y - h); ctx.lineTo(x2, y);
+  ctx.lineTo(x2 - dir*head, y + h); ctx.lineTo(x2 - dir*head, y + h/2); ctx.lineTo(x1, y + h/2); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = a; ctx.fillStyle = col; ctx.font = '700 15px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4; ctx.strokeStyle = C.surface; ctx.strokeText(label, (x1 + x2)/2, y); ctx.fillText(label, (x1 + x2)/2, y);
+  ctx.globalAlpha = 1;
+}
+
+function draw2(){
+  const ctx = ctx2, s = s2, { W, H, xc, xa, xj, y0, y1 } = S2, sp = S2.s, Vs = +vsI.value;
+  const { eN, eP } = edges();
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = C.surface; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = C['n-tint']; ctx.fillRect(xc, y0, xj - xc, y1 - y0);
+  ctx.fillStyle = C['p-tint']; ctx.fillRect(xj, y0, xa - xj, y1 - y0);
+  ctx.fillStyle = C.dep2; ctx.fillRect(eN, y0, eP - eN, y1 - y0);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(xc, y0, xa - xc, y1 - y0);
+  ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(xj, y0); ctx.lineTo(xj, y1); ctx.stroke();
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+  [eN, eP].forEach(x => { ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1 + 12); ctx.stroke(); });
+  ctx.setLineDash([]);
+  // contacten
+  ctx.fillStyle = C.metal; ctx.fillRect(xc - 14, y0 + 20, 14, y1 - y0 - 40); ctx.fillRect(xa, y0 + 20, 14, y1 - y0 - 40);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = C.ink; ctx.font = '700 20px system-ui';
+  ctx.fillText('N-Si', (xc + xj)/2, 26); ctx.fillText('P-Si', (xj + xa)/2, 26);
+  ctx.font = '600 13px system-ui'; ctx.fillStyle = C.muted;
+  ctx.fillText('kathode (K)', xc + 30, y1 + 22); ctx.fillText('anode (A)', xa - 28, y1 + 22);
+  // verarmingslaag-aanduiding
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(eN, y1 + 10); ctx.lineTo(eP, y1 + 10); ctx.stroke();
+  ctx.fillText('verarmingslaag', xj, y1 + 28);
+  // polariteit aan de contacten
+  if (Math.abs(Vs) > 0.005){
+    ctx.font = '700 22px system-ui'; ctx.fillStyle = C.ink;
+    ctx.fillText(Vs > 0 ? '−' : '+', xc - 7, y0 + 4); ctx.fillText(Vs > 0 ? '+' : '−', xa + 7, y0 + 4);
+  }
+  // externe kring: bron V_s en R_L tussen kathode en anode
+  {
+    const wy = 396, sx = xj, r = 20, xl = 22, xr = W - 22, ym = (y0 + y1)/2, I = model.I;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(xc - 14, ym); ctx.lineTo(xl, ym); ctx.lineTo(xl, wy); ctx.lineTo(160, wy);
+    ctx.moveTo(216, wy); ctx.lineTo(sx - r, wy);
+    ctx.moveTo(sx + r, wy); ctx.lineTo(xr, wy); ctx.lineTo(xr, ym); ctx.lineTo(xa + 14, ym);
+    ctx.stroke();
+    ctx.fillStyle = C.surface; ctx.strokeRect(160, wy - 9, 56, 18); ctx.fillRect(161, wy - 8, 54, 16);
+    ctx.beginPath(); ctx.arc(sx, wy, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - r, wy); ctx.lineTo(sx + r, wy); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.ink; ctx.font = '600 13px system-ui';
+    ctx.fillText('R', 182, wy - 22); ctx.font = '600 9px system-ui'; ctx.fillText('L', 190, wy - 18);
+    if (Math.abs(Vs) > 0.005){
+      const plusR = Vs > 0;
+      ctx.font = '700 17px system-ui';
+      ctx.fillText(plusR ? '−' : '+', sx - 32, wy - 14); ctx.fillText(plusR ? '+' : '−', sx + 32, wy - 14);
+      // spanningspijl van de bron: pijlpunt aan de +
+      cArrow(ctx, plusR ? sx - 22 : sx + 22, wy + 32, plusR ? sx + 22 : sx - 22, wy + 32, C.ink, 1.6, 8);
+      ctx.font = '600 13px system-ui'; ctx.textAlign = 'left';
+      ctx.fillText('V', sx + 34, wy + 32); ctx.font = '600 9px system-ui'; ctx.fillText('s', sx + 43, wy + 36);
+      ctx.font = '600 13px system-ui'; ctx.fillText('= ' + nl(Math.abs(Vs), 2) + ' V', sx + 52, wy + 32);
+    } else {
+      ctx.font = '600 13px system-ui'; ctx.fillStyle = C.muted; ctx.fillText('V', sx - 12, wy + 32);
+      ctx.font = '600 9px system-ui'; ctx.fillText('s', sx - 3, wy + 36); ctx.font = '600 13px system-ui'; ctx.fillText('= 0 V', sx + 20, wy + 32);
+    }
+    // conventionele stroompijlen op de draad (enkel bij merkbare stroom)
+    if (Math.abs(I) > 1e-6){
+      const dir = I > 0 ? 1 : -1;
+      [100, 560].forEach(cx0 => cArrow(ctx, cx0 - dir*10, wy, cx0 + dir*10, wy, C.accent, 2.5, 10));
+      ctx.fillStyle = C.accent; ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('I', 556, wy - 16); ctx.font = '600 9px system-ui'; ctx.fillText('D', 563, wy - 12);
+    }
+  }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  // elektrisch veld in de verarmingslaag: van de P⁺-ionen (N-kant) naar de B⁻-ionen (P-kant)
+  if (eP - eN > 44){
+    cArrow(ctx, eN + 6, y0 - 14, eP - 6, y0 - 14, C.ink, 1.6, 9);
+    ctx.fillStyle = C.ink; ctx.font = '700 14px system-ui'; ctx.fillText('E', xj, y0 - 30);
+  }
+  // ionen
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let c = 0; c < 12; c++) for (let r = 0; r < 4; r++){
+    const x = xc + (c + .5)*sp, y = ionY(r), pos = x < xj;
+    ctx.fillStyle = C.surface; ctx.strokeStyle = alpha(C.ink, .55); ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.font = '700 17px system-ui'; ctx.fillText(pos ? '+' : '−', x, y + 1);
+  }
+  // stroompijlen in voorwaartse polarisatie
+  const a = Math.min(1, s.v/0.35);
+  if (a > 0.02){
+    bigArrow(ctx, xa - 40, xc + 40, ionY(1) + .25*sp, 13, C.hole, 'gatenstroom', a);
+    bigArrow(ctx, xc + 40, xa - 40, ionY(2) + .25*sp, 13, C.electron, 'elektronenstroom', a);
+  }
+  // ladingsdragers
+  ['e', 'h'].forEach(type => {
+    for (let l = 0; l < 4; l++) visibleCarriers(type, l).forEach(c => {
+      const w = wob(c.m, l), edgeDist = type === 'e' ? c.x - xc : xa - c.x;
+      drawCarrier(ctx, type, c.x + w.dx, laneY(l) + w.dy, Math.min(1, 0.2 + edgeDist/(0.35*sp)));
+    });
+  });
+  s.movers.forEach(m => drawCarrier(ctx, m.type, m.x, m.y));
+  s.flashes.forEach(f => { ctx.strokeStyle = alpha(C.accent, 1 - f.t/0.6); ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(f.x, f.y, 6 + f.t*28, 0, Math.PI*2); ctx.stroke(); });
+}
+
+/* ---------- schakeling (SVG), naar de figuur in de cursus ---------- */
+function sArrow(x1, y1, x2, y2, col, w = 1.6, hs = 8){
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  const bx = x2 - Math.cos(a)*hs*.8, by = y2 - Math.sin(a)*hs*.8;
+  return `<line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" style="stroke:${col};stroke-width:${w}"/>` +
+    `<polygon points="${x2},${y2} ${x2 - hs*Math.cos(a - .42)},${y2 - hs*Math.sin(a - .42)} ${x2 - hs*Math.cos(a + .42)},${y2 - hs*Math.sin(a + .42)}" style="fill:${col}"/>`;
+}
+function fmtI(I){
+  const a = Math.abs(I), sg = I < 0 ? '−' : '';
+  if (a < 1e-9) return sg + nl(a*1e12, 1) + ' pA';
+  if (a < 1e-6) return sg + nl(a*1e9, 1) + ' nA';
+  if (a < 1e-3) return sg + nl(a*1e6, 1) + ' µA';
+  return sg + nl(a*1e3, 2) + ' mA';
+}
+const fmtR = R => R >= 1000 ? nl(R/1000, R % 1000 ? 1 : 0) + ' kΩ' : R + ' Ω';
+const sub = (b, t) => `${b}<tspan dy="3" font-size="9">${t}</tspan><tspan dy="-3">`;
+
+function drawSchem(){
+  const Vs = +vsI.value, R = RV[+rlI.value], { Vd, I } = model, Vr = Vs - Vd;
+  const ink = 'var(--ink)', acc = 'var(--accent)', mut = 'var(--muted)';
+  const T = (x, y, t, anchor = 'start', col = ink) => `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" style="fill:${col};font:600 12.5px system-ui">${t}</text>`;
+  let g = '';
+  // draden
+  g += `<path d="M70 108 V50 H120 M180 50 H310 V105 M310 131 V215 H70 V152" style="fill:none;stroke:${ink};stroke-width:2"/>`;
+  // spanningsbron (cirkel met streepje)
+  g += `<circle cx="70" cy="130" r="22" style="fill:var(--surface);stroke:${ink};stroke-width:2"/><line x1="70" y1="108" x2="70" y2="152" style="stroke:${ink};stroke-width:2"/>`;
+  // R_L
+  g += `<rect x="120" y="40" width="60" height="20" style="fill:var(--surface);stroke:${ink};stroke-width:2"/>`;
+  g += T(150, 26, sub('R', 'L') + ` = ${fmtR(R)}</tspan>`, 'middle');
+  // D1: anode boven, kathode onder
+  g += `<polygon points="296,105 324,105 310,130" style="fill:${ink}"/><line x1="296" y1="131" x2="324" y2="131" style="stroke:${ink};stroke-width:2.5"/>`;
+  g += T(334, 118, 'D1');
+  g += `<text x="334" y="100" style="fill:${mut};font:600 10px system-ui">A</text><text x="334" y="140" style="fill:${mut};font:600 10px system-ui">K</text>`;
+  if (Math.abs(Vs) > 0.005){
+    const up = Vs > 0;
+    g += T(46, 108, up ? '+' : '−', 'middle') + T(46, 154, up ? '−' : '+', 'middle');
+    g += sArrow(104, up ? 156 : 104, 104, up ? 104 : 156, ink);
+    g += T(112, 130, sub('V', 's') + ` = ${nl(Math.abs(Vs), 2)} V</tspan>`);
+  } else g += T(112, 130, sub('V', 's') + ' = 0 V</tspan>');
+  if (Math.abs(Vr) > 0.005){
+    const leftPlus = Vr > 0;
+    g += sArrow(leftPlus ? 182 : 118, 74, leftPlus ? 118 : 182, 74, ink);
+    g += T(150, 90, sub('V', 'RL') + ` = ${nl(Math.abs(Vr), 2)} V</tspan>`, 'middle');
+  }
+  if (Math.abs(Vd) > 0.005){
+    const anodePlus = Vd > 0;
+    g += sArrow(284, anodePlus ? 144 : 92, 284, anodePlus ? 92 : 144, ink);
+    g += T(276, 168, sub('V', 'D') + ` = ${nl(Math.abs(Vd), 2)} V</tspan>`, 'end');
+  }
+  if (Math.abs(Vs) > 0.005){
+    const fwd = I > 0, c = 250;
+    g += `<polygon points="${fwd ? `${c+7},50 ${c-5},43 ${c-5},57` : `${c-7},50 ${c+5},43 ${c+5},57`}" style="fill:${acc}"/>`;
+    g += T(c, 32, sub('I', 'D') + ` = ${fmtI(Math.abs(I))}</tspan>`, 'middle', acc);
+  }
+  g += T(190, 240, Vs > 0.005 ? 'D1 voorwaarts gepolariseerd' : Vs < -0.005 ? 'D1 invers gepolariseerd' : 'D1 niet gepolariseerd', 'middle', mut);
+  $('#schem').innerHTML = g;
+}
+
+/* ---------- karakteristiek (SVG) ---------- */
+function niceCeil(v){ const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m*p >= v - 1e-12) return m*p; return 10*p; }
+function drawIU(){
+  const Vs = +vsI.value, R = RV[+rlI.value], { Vd, I } = model;
+  const ml = 48, mr = 14, mt = 24, mb = 36, pw = 380 - ml - mr, ph = 250 - mt - mb;
+  const xmin = -5, xmax = 1, ymax = niceCeil(5/R*1000*1.02), ymin = -0.07*ymax;
+  const sx = u => ml + (u - xmin)/(xmax - xmin)*pw, sy = i => mt + (ymax - i)/(ymax - ymin)*ph;
+  let g = `<defs><clipPath id="clip"><rect x="${ml}" y="${mt}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  for (let u = -5; u <= 1; u++){
+    g += `<line x1="${sx(u)}" y1="${mt}" x2="${sx(u)}" y2="${mt + ph}" style="stroke:var(--line);stroke-width:${u === 0 ? 1.4 : 1}"/>`;
+    g += `<text x="${sx(u)}" y="${mt + ph + 14}" text-anchor="middle" style="fill:var(--muted);font:11px var(--f-mono)">${nl(u, 0)}</text>`;
+  }
+  for (let k = 0; k <= 4; k++){
+    const i = ymax*k/4;
+    g += `<line x1="${ml}" y1="${sy(i)}" x2="${ml + pw}" y2="${sy(i)}" style="stroke:var(--line);stroke-width:${k === 0 ? 1.4 : 1}"/>`;
+    g += `<text x="${ml - 6}" y="${sy(i)}" text-anchor="end" dominant-baseline="middle" style="fill:var(--muted);font:11px var(--f-mono)">${nl(i, i < 1 && i > 0 ? 2 : (i % 1 ? 1 : 0))}</text>`;
+  }
+  g += `<text x="${ml + pw}" y="${mt + ph + 30}" text-anchor="end" style="fill:var(--muted);font:600 11px system-ui">V<tspan font-size="8" dy="2">D</tspan><tspan dy="-2"> (V)</tspan></text>`;
+  g += `<text x="${ml - 6}" y="${mt - 12}" text-anchor="end" style="fill:var(--muted);font:600 11px system-ui">I<tspan font-size="8" dy="2">D</tspan><tspan dy="-2"> (mA)</tspan></text>`;
+  let d = '';
+  for (let u = xmin; u <= xmax; u += 0.004){
+    const i = IS*(Math.exp(u/NVT) - 1)*1000;
+    if (i > ymax*1.3){ d += `L${sx(u)},${sy(ymax*1.3)}`; break; }
+    d += (d ? 'L' : 'M') + sx(u) + ',' + sy(i);
+  }
+  g += `<g clip-path="url(#clip)"><path d="${d}" style="fill:none;stroke:var(--ink);stroke-width:2.2"/>`;
+  if (Math.abs(Vs) > 0.005)
+    g += `<line x1="${sx(xmin)}" y1="${sy((Vs - xmin)/R*1000)}" x2="${sx(xmax)}" y2="${sy((Vs - xmax)/R*1000)}" style="stroke:var(--accent);stroke-width:1.6;stroke-dasharray:6 4"/>`;
+  g += `</g>`;
+  const px = sx(Math.max(xmin, Math.min(xmax, Vd))), py = sy(I*1000);
+  g += `<circle cx="${px}" cy="${py}" r="5.5" style="fill:var(--surface);stroke:var(--hole);stroke-width:2.5"/>`;
+  g += `<text x="${Math.min(px + 9, ml + pw - 50)}" y="${py - 10}" style="fill:var(--hole);font:600 11px system-ui">werkpunt</text>`;
+  $('#iu').innerHTML = g;
+}
+
+function explain2(){
+  const Vs = +vsI.value, { I } = model;
+  let h;
+  if (Math.abs(Vs) < 0.005){
+    h = `<span class="state" style="color:var(--muted)">niet gepolariseerd</span><h3>Evenwicht</h3><p>Aan de junctie zijn elektronen uit het N-Si met gaten uit het P-Si gerecombineerd. Er blijft een zone over met vaste ionen, maar zonder vrije ladingen: de <b>verarmingslaag</b> (sperlaag). De P-ionen (+) en B-ionen (−) in die laag veroorzaken een elektrisch veld en een spanning over de junctie. Dat veld duwt elektronen terug naar het N-Si en gaten terug naar het P-Si.</p><p>Af en toe raakt toch een elektron of gat over de junctie. En af en toe ontstaat in de verarmingslaag een (elektron, gat)-paar door thermische generatie (de flits), dat door het veld uit elkaar wordt getrokken. Beide effecten heffen elkaar op: er vloeit geen stroom.</p>`;
+  } else if (Vs < 0){
+    h = `<span class="state" style="color:var(--hole)">invers gepolariseerd</span><h3>De junctie spert</h3><p>Het N-Si hangt aan de pluspool, het P-Si aan de minpool. De vrije elektronen bewegen naar de pluspool en de gaten naar de minpool: ze worden van de junctie weggetrokken. De verarmingslaag verbreedt.</p><p>Er vloeit enkel een zeer kleine lekstroom, door (elektron, gat)-paren die in de verarmingslaag door thermische generatie ontstaan (de flitsen). Bijna de volledige bronspanning staat over de diode.</p>`;
+  } else if (I*1e3 < 0.05){
+    h = `<span class="state" style="color:var(--accent)">voorwaarts gepolariseerd, onder de doorlaatspanning</span><h3>Verarmingslaag smaller, nog bijna geen stroom</h3><p>Het P-Si hangt aan de pluspool, het N-Si aan de minpool. De verarmingslaag wordt smaller, maar zolang V<sub>D</sub> onder ongeveer 0,5 V blijft, raken maar enkele ladingen over de junctie. De stroom blijft zeer klein.</p>`;
+  } else {
+    h = `<span class="state" style="color:var(--accent)">voorwaarts gepolariseerd</span><h3>De diode geleidt</h3><p>Het P-Si hangt aan de pluspool, het N-Si aan de minpool. De verarmingslaag is zo goed als verdwenen. Elektronen uit het N-Si steken de junctie over naar het P-Si (<b>elektronenstroom</b>) en gaten uit het P-Si steken over naar het N-Si (<b>gatenstroom</b>). Net voorbij de junctie recombineren ze met een meerderheidsladingsdrager (de flits).</p><p>Aan de kathode levert de bron voortdurend nieuwe elektronen; aan de anode haalt ze elektronen weg, waardoor daar nieuwe gaten ontstaan. De conventionele stroom I<sub>D</sub> vloeit van anode naar kathode en is de som van de gatenstroom en de elektronenstroom: gaten die naar links bewegen en elektronen die naar rechts bewegen, leveren allebei een conventionele stroom van P naar N. V<sub>D</sub> blijft rond 0,6 à 0,7 V (doorlaatspanning); de rest van V<sub>s</sub> staat over R<sub>L</sub>.</p>`;
+  }
+  $('#explain2').innerHTML = h;
+}
+
+function update2(){
+  const Vs = +vsI.value, R = RV[+rlI.value];
+  model = solve(Vs, R);
+  $('#vso').textContent = nl(Vs, 2) + ' V'; $('#rlo').textContent = fmtR(R);
+  $('#r2vd').textContent = nl(model.Vd, 3) + ' V';
+  $('#r2i').textContent = fmtI(model.I);
+  $('#r2vr').textContent = nl(Vs - model.Vd, 2) + ' V';
+  $('#r2w').textContent = '× ' + nl(wTarget(model.Vd), 2);
+  drawSchem(); drawIU(); explain2();
+}
+[vsI, rlI].forEach(el => el.addEventListener('input', () => { update2(); if (paused2) draw2(); }));
+$('#reset2').addEventListener('click', () => { init2(); draw2(); });
+const p2b = $('#pause2');
+p2b.addEventListener('click', () => { paused2 = !paused2; p2b.textContent = paused2 ? 'Verder' : 'Pauze'; });
+
+/* ================= 3D: diamantrooster ================= */
+const W3 = 760, H3 = 480, cv3 = $('#cv3'); let ctx3 = fitCanvas(cv3, W3, H3);
+const v3 = { view: 'cell', cen: 'Si', showE: true, yaw: 0.55, pitch: -0.32, auto: !reduce, drag: null, t: 0 };
+let scene;
+const sub3 = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+const add3 = (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]];
+const mul3 = (a, k) => [a[0]*k, a[1]*k, a[2]*k];
+const len3 = a => Math.hypot(a[0], a[1], a[2]);
+const lerp3 = (a, b, t) => add3(a, mul3(sub3(b, a), t));
+// waarschijnlijkheidswolk van het vijfde elektron (1s-achtig, straal a* ≈ 2,5 nm ≈ 4,6 a)
+const ASTAR = 4.6;
+const CLOUD = (() => { const pts = []; while (pts.length < 1400){
+  const r = -(ASTAR/2)*Math.log(Math.random()*Math.random()*Math.random()); if (r > 3*ASTAR) continue;
+  const z = 2*Math.random() - 1, ph = 2*Math.PI*Math.random(), q = Math.sqrt(1 - z*z);
+  pts.push([r*q*Math.cos(ph), r*q*Math.sin(ph), r*z]); } return pts; })();
+function buildScene(){
+  const atoms = [], bonds = [], edges = [];
+  let ext, R, ci, nbIdx;
+  if (v3.view === 'tet'){
+    atoms.push([0, 0, 0]);
+    [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].forEach(p => atoms.push(mul3(p, .25)));
+    for (let i = 1; i <= 4; i++) bonds.push([0, i]);
+    ci = 0; nbIdx = [1, 2, 3, 4]; ext = 0.4; R = 0.075;
+  } else {
+    const N = v3.view === 'cell' ? 1 : 2, eps = 1e-6;
+    const base = [[0,0,0],[0,.5,.5],[.5,0,.5],[.5,.5,0]];
+    const basis = base.concat(base.map(p => add3(p, [.25,.25,.25])));
+    const seen = new Set();
+    for (let i = -1; i <= N; i++) for (let j = -1; j <= N; j++) for (let k = -1; k <= N; k++) basis.forEach(b => {
+      const p = add3(b, [i, j, k]);
+      if (p.every(c => c > -eps && c < N + eps)){
+        const key = p.map(c => Math.round(c*4)).join(',');
+        if (!seen.has(key)){ seen.add(key); atoms.push(p); }
+      }
+    });
+    for (let a = 0; a < atoms.length; a++) for (let b = a + 1; b < atoms.length; b++)
+      if (Math.abs(len3(sub3(atoms[a], atoms[b])) - Math.sqrt(3)/4) < 1e-3) bonds.push([a, b]);
+    const site = N === 1 ? [.25,.25,.25] : [1.25,1.25,1.25];
+    ci = atoms.findIndex(p => len3(sub3(p, site)) < 1e-3);
+    nbIdx = bonds.filter(b => b.includes(ci)).map(b => b[0] === ci ? b[1] : b[0]);
+    const c = [N/2, N/2, N/2];
+    atoms.forEach((p, i) => atoms[i] = sub3(p, c));
+    const corners = [];
+    for (let i = 0; i < 8; i++) corners.push([(i & 1 ? N : 0) - N/2, (i & 2 ? N : 0) - N/2, (i & 4 ? N : 0) - N/2]);
+    for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) if ([1, 2, 4].includes(a ^ b)) edges.push([corners[a], corners[b]]);
+    ext = v3.view === 'zoom' ? 2.3*ASTAR : N*0.9; R = N === 1 ? 0.075 : 0.07;
+  }
+  // de "halve" binding bij boor: de eerste binding van het centrale atoom
+  const cenBonds = bonds.map((b, i) => b.includes(ci) ? i : -1).filter(i => i >= 0);
+  scene = { atoms, bonds, edges, ext, R, ci, nbIdx, halfBond: cenBonds[0] };
+}
+function proj(p){
+  const cy = Math.cos(v3.yaw), sy = Math.sin(v3.yaw), cp = Math.cos(v3.pitch), sp = Math.sin(v3.pitch);
+  const x1 = p[0]*cy + p[2]*sy, z1 = -p[0]*sy + p[2]*cy;
+  const y2 = p[1]*cp - z1*sp, z2 = p[1]*sp + z1*cp;
+  const D = scene.ext*4.2, k = 205/scene.ext, f = D/(D - z2);
+  return { x: W3/2 + x1*k*f, y: H3/2 - y2*k*f, z: z2, f: k*f };
+}
+function draw3(){
+  const ctx = ctx3, sc = scene, items = [];
+  ctx.clearRect(0, 0, W3, H3); ctx.fillStyle = C.surface; ctx.fillRect(0, 0, W3, H3);
+  const P = sc.atoms.map(proj);
+  // kubusribben
+  sc.edges.forEach(([a, b]) => { const A = proj(a), B = proj(b); items.push({ z: (A.z + B.z)/2 - 10, d(){ ctx.strokeStyle = C.line; ctx.lineWidth = 1.2; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); } }); });
+  // tetraëderribben
+  const nb = sc.nbIdx, zoom = v3.view === 'zoom';
+  if (!zoom) for (let i = 0; i < nb.length; i++) for (let j = i + 1; j < nb.length; j++){
+    const A = P[nb[i]], B = P[nb[j]];
+    items.push({ z: (A.z + B.z)/2, d(){ ctx.strokeStyle = C.accent; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); ctx.setLineDash([]); } });
+  }
+  // bindingen + bindingselektronen
+  sc.bonds.forEach(([a, b], bi) => {
+    const pa = sc.atoms[a], pb = sc.atoms[b], L = len3(sub3(pb, pa)), t0 = sc.R/L*0.9;
+    const A = proj(lerp3(pa, pb, t0)), B = proj(lerp3(pa, pb, 1 - t0)), cen = a === sc.ci || b === sc.ci;
+    items.push({ z: (A.z + B.z)/2, d(){ ctx.strokeStyle = cen ? C.ink : C.bond; ctx.globalAlpha = cen ? .55 : 1; ctx.lineWidth = zoom ? 1 : Math.max(2, 0.03*(A.f + B.f)/2); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); ctx.globalAlpha = 1; } });
+    if (v3.showE && !zoom){
+      const half = v3.cen === 'B' && bi === sc.halfBond;
+      [0.4, 0.6].forEach((t, k) => {
+        const q = proj(lerp3(pa, pb, t)), r = Math.max(2.2, 0.022*q.f);
+        if (half && k === 1) items.push({ z: q.z + .001, d(){ ctx.fillStyle = C.surface; ctx.strokeStyle = C.hole; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, r*1.5, 0, Math.PI*2); ctx.fill(); ctx.stroke(); } });
+        else items.push({ z: q.z + .001, d(){ ctx.fillStyle = C.electron; ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI*2); ctx.fill(); } });
+      });
+    }
+  });
+  // atomen
+  sc.atoms.forEach((p, i) => {
+    const q = P[i], r = Math.max(zoom ? 2.2 : 0, sc.R*q.f), cen = i === sc.ci, col = cen ? C.accent : C.si;
+    const label = cen ? v3.cen : 'Si';
+    items.push({ z: q.z, d(){
+      const g = ctx.createRadialGradient(q.x - r*.35, q.y - r*.35, r*.1, q.x, q.y, r);
+      g.addColorStop(0, alpha('#ffffff', .85)); g.addColorStop(.35, col); g.addColorStop(1, col);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = alpha(C.ink, .25); ctx.lineWidth = 1; ctx.stroke();
+      if (r > 9){ ctx.fillStyle = cen ? '#ffffff' : C.ink; ctx.font = `700 ${Math.round(Math.min(15, r*.75))}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, q.x, q.y + 1); }
+    } });
+  });
+  // vijfde elektron van fosfor: geen baan, wel een waarschijnlijkheidswolk
+  const cp = proj(sc.atoms[sc.ci]);
+  if (v3.cen === 'P' && v3.showE){
+    if (zoom){
+      const c = sc.atoms[sc.ci];
+      CLOUD.forEach(p => { const q = proj(add3(c, p)); items.push({ z: q.z, d(){ ctx.fillStyle = alpha(C.electron, .5); ctx.beginPath(); ctx.arc(q.x, q.y, 1.6, 0, Math.PI*2); ctx.fill(); } }); });
+    } else {
+      items.push({ z: -2e9, d(){ const R = ASTAR*cp.f, g = ctx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, R); g.addColorStop(0, alpha(C.electron, .16)); g.addColorStop(1, alpha(C.electron, .05)); ctx.fillStyle = g; ctx.fillRect(0, 0, W3, H3); } });
+    }
+  }
+  items.sort((a, b) => a.z - b.z).forEach(it => it.d());
+  // bijschriften bij de wolk
+  if (v3.cen === 'P' && v3.showE){
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '600 13px system-ui';
+    if (zoom){
+      ctx.strokeStyle = alpha(C.electron, .8); ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.arc(cp.x, cp.y, ASTAR*cp.f, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = C.electron; ctx.fillText('meest waarschijnlijke afstand tot het P⁺-ion ≈ 2,5 nm (≈ 4,6 a)', 14, H3 - 36);
+      ctx.fillStyle = C.ink; ctx.fillText('in het midden: het blok van 2 × 2 × 2 cellen (2a ≈ 1,1 nm)', 14, H3 - 16);
+    } else {
+      ctx.fillStyle = C.electron;
+      ctx.fillText('De wolk van het vijfde elektron is groter dan dit beeld. Kies "Uitgezoomd" om ze volledig te zien.', 14, H3 - 16);
+    }
+  }
+  // bindingshoek tussen twee bindingen van het centrale atoom
+  if (v3.view === 'cell2' || zoom) return;
+  const c0 = sc.atoms[sc.ci], d1 = sub3(sc.atoms[nb[0]], c0), d2 = sub3(sc.atoms[nb[1]], c0);
+  const n1 = mul3(d1, 1/len3(d1)), n2 = mul3(d2, 1/len3(d2)), ra = sc.R*1.7, th = Math.acos(n1[0]*n2[0] + n1[1]*n2[1] + n1[2]*n2[2]);
+  const arc = []; for (let k = 0; k <= 20; k++){ const t = k/20, s1_ = Math.sin((1 - t)*th)/Math.sin(th), s2_ = Math.sin(t*th)/Math.sin(th); arc.push(proj(add3(c0, mul3(add3(mul3(n1, s1_), mul3(n2, s2_)), ra)))); }
+  ctx.strokeStyle = C.hole; ctx.lineWidth = 2; ctx.beginPath(); arc.forEach((o, k) => k ? ctx.lineTo(o.x, o.y) : ctx.moveTo(o.x, o.y)); ctx.stroke();
+  const mid = add3(mul3(n1, .5), mul3(n2, .5)), lp = proj(add3(c0, mul3(mid, ra*2.4/len3(mid))));
+  ctx.font = '700 13px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4; ctx.strokeStyle = C.surface; ctx.strokeText('109,5°', lp.x, lp.y); ctx.fillStyle = C.hole; ctx.fillText('109,5°', lp.x, lp.y);
+}
+const EX3 = {
+  Si: `<h3>Tetraëderstructuur</h3><p>Elk Si-atoom heeft 4 valentie-elektronen en vormt 4 covalente bindingen. De 4 buren liggen op de hoekpunten van een regelmatige tetraëder rond het atoom, met een hoek van 109,5° tussen elke twee bindingen. Elke binding bevat 2 elektronen: één van elk atoom.</p><p>Herhaal je die tetraëders in alle richtingen, dan krijg je het diamantrooster. Het vlakke rooster in tabblad 1 tekent hetzelfde idee in 2D: elk atoom heeft 4 buren en elke binding 2 elektronen.</p>`,
+  P: `<h3>Fosfor op een roosterplaats</h3><p>Het P-atoom neemt de plaats van een Si-atoom in en vormt dezelfde 4 bindingen. Daarvoor gebruikt het 4 van zijn 5 valentie-elektronen. Het vijfde past in geen enkele binding. Het blijft zwak gebonden aan het P⁺-ion, maar het draait niet in een baan rond het ion: het is uitgesmeerd in een wolk. De wolk toont waar je het elektron kunt aantreffen. Het meest waarschijnlijk is dat op ongeveer 2,5 nm van het P⁺-ion, of zo'n 4,6 roosterconstanten (a = 0,543 nm).</p><p>Die wolk omvat duizenden Si-atomen. In de tetraëder, de eenheidscel en zelfs 2 × 2 × 2 cellen zie je er dus maar een klein stukje van. Kies <b>Uitgezoomd</b> om de hele wolk te zien. Het omringende silicium schermt de aantrekking van het P⁺-ion grotendeels af. Daardoor is de binding zo zwak en komt het elektron bij kamertemperatuur al los.</p>`,
+  B: `<h3>Boor op een roosterplaats</h3><p>Het B-atoom heeft maar 3 valentie-elektronen voor 4 bindingen. In één binding zit daardoor maar één elektron: daar ontbreekt er één, en dat is het gat. Springt een elektron uit een naburige binding in dat gat, dan is het boor-atoom een B⁻-ion geworden en zit het gat bij een ander atoom.</p>`
+};
+function sync3(){
+  $('#zoomBtn').hidden = v3.cen !== 'P';
+  document.querySelectorAll('#viewSeg button').forEach(b => b.setAttribute('aria-checked', b.dataset.v === v3.view));
+  document.querySelectorAll('#cenSeg button').forEach(b => b.setAttribute('aria-checked', b.dataset.c === v3.cen));
+  $('#rot3').textContent = 'Draaien: ' + (v3.auto ? 'aan' : 'uit');
+  $('#explain3').innerHTML = EX3[v3.cen];
+}
+$('#viewSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; v3.view = b.dataset.v; buildScene(); sync3(); draw3(); });
+$('#cenSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; v3.cen = b.dataset.c; if (v3.cen !== 'P' && v3.view === 'zoom'){ v3.view = 'cell2'; buildScene(); } sync3(); draw3(); });
+$('#showE').addEventListener('change', e => { v3.showE = e.target.checked; draw3(); });
+$('#rot3').addEventListener('click', () => { v3.auto = !v3.auto; sync3(); });
+$('#home3').addEventListener('click', () => { v3.yaw = 0.55; v3.pitch = -0.32; draw3(); });
+cv3.addEventListener('pointerdown', e => { v3.drag = { x: e.clientX, y: e.clientY }; cv3.setPointerCapture(e.pointerId); });
+cv3.addEventListener('pointermove', e => {
+  if (!v3.drag) return;
+  const k = 3.2/cv3.getBoundingClientRect().width*Math.PI;
+  v3.yaw += (e.clientX - v3.drag.x)*k; v3.pitch = Math.max(-1.45, Math.min(1.45, v3.pitch + (e.clientY - v3.drag.y)*k));
+  v3.drag = { x: e.clientX, y: e.clientY }; draw3();
+});
+['pointerup', 'pointercancel'].forEach(t => cv3.addEventListener(t, () => v3.drag = null));
+buildScene(); sync3(); draw3();
+function loop3(t){
+  const dt = 1/60;
+  if (active === 3){
+    if (v3.auto && !v3.drag) v3.yaw += 0.25*dt;
+    v3.t += dt;
+    if (v3.auto) draw3();
+  }
+  requestAnimationFrame(loop3);
+}
+requestAnimationFrame(loop3);
+
+
+const SPEEDS = [0.1, 0.2, 0.25, 0.5, 0.75, 1, 1.5, 2, 3];
+const spd = n => SPEEDS[+$('#sp' + n).value];
+[1, 2].forEach(n => $('#sp' + n).addEventListener('input', () => { $('#sp' + n + 'o').textContent = nl(spd(n), spd(n) < 1 ? 2 : 1).replace(/,?0+$/, '') + '×'; }));
+function run(stepFn, dt){ let t = dt; while (t > 1e-6){ const h = Math.min(t, 0.03); stepFn(h); t -= h; } }
+
+/* ================= tabs, lus, thema ================= */
+let active = 1;
+function refit(){
+  if (active === 1){ ctx1 = fitCanvas(cv1, S1.W, S1.H); draw1(); }
+  else if (active === 2){ ctx2 = fitCanvas(cv2, S2.W, S2.H); draw2(); }
+  else { ctx3 = fitCanvas(cv3, W3, H3); draw3(); }
+}
+function setTab(n){
+  active = n;
+  [1, 2, 3].forEach(k => { $('#tab' + k).setAttribute('aria-selected', k === n); $('#panel' + k).hidden = k !== n; });
+  refit();
+}
+[1, 2, 3].forEach(k => $('#tab' + k).addEventListener('click', () => setTab(k)));
+addEventListener('resize', refit);
+const retheme = () => { readColors(); refit(); };
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', retheme);
+new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+if (reduce){ p1b.textContent = 'Start'; p2b.textContent = 'Start'; }
+syncLabels1(); init1();
+for (let i = 0; i < 120; i++) step1(1/60);
+stats1(); draw1();
+update2(); init2(); draw2();
+if (location.hash === '#pn') setTab(2);
+if (location.hash === '#3d') setTab(3);
+
+let last = performance.now();
+function frame(t){
+  const dt = Math.min(0.05, (t - last)/1000); last = t;
+  if (active === 1 && !paused1){ run(step1, dt*spd(1)); draw1(); statT += dt; if (statT > 0.2){ statT = 0; stats1(); } }
+  if (active === 2 && !paused2){ run(step2, dt*spd(2)); draw2(); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
